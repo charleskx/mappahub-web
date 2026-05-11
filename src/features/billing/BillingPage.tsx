@@ -7,19 +7,28 @@ const PLAN_LABELS: Record<string, string> = {
   monthly: 'Mensal',
   annual: 'Anual',
   trial: 'Trial',
-  starter: 'Starter',
-  pro: 'Pro',
-  enterprise: 'Enterprise',
 }
 
 const PLAN_TONES: Record<string, 'success' | 'warning' | 'info' | 'accent'> = {
   trial: 'warning',
   monthly: 'info',
   annual: 'success',
-  starter: 'info',
-  pro: 'success',
-  enterprise: 'accent',
 }
+
+const PLANS = [
+  {
+    key: 'monthly',
+    label: 'Mensal',
+    price: 'R$ 197/mês',
+    features: ['Parceiros ilimitados', 'Usuários ilimitados', 'Suporte via e-mail', 'Mapas públicos'],
+  },
+  {
+    key: 'annual',
+    label: 'Anual',
+    price: 'R$ 1.970/ano',
+    features: ['Tudo do Mensal', '2 meses grátis', 'Suporte prioritário', 'Onboarding dedicado'],
+  },
+]
 
 export default function BillingPage() {
   const { push } = useToast()
@@ -31,26 +40,20 @@ export default function BillingPage() {
 
   const checkoutMutation = useMutation({
     mutationFn: (plan: string) => api.billing.checkout(plan as 'monthly' | 'annual'),
-    onSuccess: (data) => {
-      if (data?.url) window.location.href = data.url
-    },
+    onSuccess: (data) => { if (data?.url) window.location.href = data.url },
     onError: () => push({ title: 'Erro ao iniciar checkout', tone: 'error' }),
   })
 
   const portalMutation = useMutation({
     mutationFn: () => api.billing.portal(),
-    onSuccess: (data) => {
-      if (data?.url) window.location.href = data.url
-    },
+    onSuccess: (data) => { if (data?.url) window.location.href = data.url },
     onError: () => push({ title: 'Erro ao abrir portal', tone: 'error' }),
   })
 
+  const planType = subscription?.planType ?? ''
   const daysUsed = subscription?.trialEndsAt
-    ? Math.max(0, 30 - Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    ? Math.max(0, 30 - Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / 86_400_000))
     : 0
-
-  const planLabel = PLAN_LABELS[subscription?.planType ?? ''] ?? subscription?.planType ?? '—'
-  const planTone = PLAN_TONES[subscription?.planType ?? '']
 
   return (
     <div className="page">
@@ -61,113 +64,103 @@ export default function BillingPage() {
         </div>
       </div>
 
-      {isLoading ? (
-        <Card><Skeleton h={120} /></Card>
-      ) : (
-        <>
-          <Card>
-            <CardHeader
-              title="Plano atual"
-              action={
-                subscription?.planType ? (
-                  <Badge tone={planTone}>{planLabel}</Badge>
-                ) : undefined
-              }
-            />
-
-            {subscription?.planType === 'trial' && (
-              <div style={{ marginTop: 16 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span className="muted text-sm">Período trial</span>
-                  <span className="muted text-sm">{daysUsed} / 30 dias usados</span>
-                </div>
-                <Progress value={(daysUsed / 30) * 100} tone={daysUsed >= 25 ? 'danger' : undefined} />
-                <p className="muted text-sm" style={{ marginTop: 12 }}>
-                  {subscription.trialEndsAt
-                    ? `Seu trial expira em ${new Date(subscription.trialEndsAt).toLocaleDateString('pt-BR')}.`
-                    : 'Assine um plano para continuar usando o atlasync.'}
-                </p>
-              </div>
-            )}
-
-            {subscription?.planType !== 'trial' && subscription?.currentPeriodEnd && (
-              <div className="muted text-sm" style={{ marginTop: 12 }}>
-                Próxima renovação:{' '}
-                <strong>{new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}</strong>
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
-              {subscription?.planType && subscription.planType !== 'trial' ? (
-                <Button
-                  variant="outline"
-                  leftIcon={<I.card size={14} />}
-                  onClick={() => portalMutation.mutate()}
-                  disabled={portalMutation.isPending}
-                >
-                  {portalMutation.isPending ? 'Abrindo…' : 'Gerenciar assinatura'}
-                </Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  leftIcon={<I.card size={14} />}
-                  onClick={() => checkoutMutation.mutate('monthly')}
-                  disabled={checkoutMutation.isPending}
-                >
-                  {checkoutMutation.isPending ? 'Aguarde…' : 'Assinar agora'}
-                </Button>
-              )}
-            </div>
-          </Card>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-            {[
-              {
-                plan: 'monthly',
-                label: 'Mensal',
-                price: 'R$ 197/mês',
-                features: ['Parceiros ilimitados', 'Usuários ilimitados', 'Suporte via e-mail', 'Mapas públicos'],
-              },
-              {
-                plan: 'annual',
-                label: 'Anual',
-                price: 'R$ 1.970/ano',
-                features: ['Tudo do Mensal', '2 meses grátis', 'Suporte prioritário', 'Onboarding dedicado'],
-              },
-            ].map((p) => {
-              const isCurrent = subscription?.planType === p.plan
-              return (
-                <Card key={p.plan} style={isCurrent ? { border: '1px solid var(--accent)' } : undefined}>
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>{p.label}</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 12 }}>{p.price}</div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {p.features.map((f) => (
-                      <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: 'var(--fg-muted)' }}>
-                        <I.check size={12} style={{ color: 'var(--success)', flexShrink: 0 }} />
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-                  <div style={{ marginTop: 16 }}>
-                    {isCurrent ? (
-                      <Badge tone="success">Plano atual</Badge>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        style={{ width: '100%' }}
-                        onClick={() => checkoutMutation.mutate(p.plan)}
-                        disabled={checkoutMutation.isPending}
-                      >
-                        Assinar {p.label}
-                      </Button>
-                    )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {isLoading ? (
+          <Card><div className="card-body"><Skeleton h={120} /></div></Card>
+        ) : (
+          <>
+            {/* Current plan card */}
+            <Card>
+              <CardHeader
+                title="Plano atual"
+                action={planType ? <Badge tone={PLAN_TONES[planType]}>{PLAN_LABELS[planType] ?? planType}</Badge> : undefined}
+              />
+              <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {planType === 'trial' && (
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <span className="muted text-sm">Período trial</span>
+                      <span className="muted text-sm">{daysUsed} / 30 dias usados</span>
+                    </div>
+                    <Progress value={(daysUsed / 30) * 100} tone={daysUsed >= 25 ? 'danger' : undefined} />
+                    <div className="muted text-sm" style={{ marginTop: 8 }}>
+                      {subscription?.trialEndsAt
+                        ? `Seu trial expira em ${new Date(subscription.trialEndsAt).toLocaleDateString('pt-BR')}.`
+                        : 'Assine um plano para continuar usando o atlasync.'}
+                    </div>
                   </div>
-                </Card>
-              )
-            })}
-          </div>
-        </>
-      )}
+                )}
+
+                {planType !== 'trial' && subscription?.currentPeriodEnd && (
+                  <div className="muted text-sm">
+                    Próxima renovação:{' '}
+                    <strong>{new Date(subscription.currentPeriodEnd).toLocaleDateString('pt-BR')}</strong>
+                  </div>
+                )}
+
+                <div>
+                  {planType && planType !== 'trial' ? (
+                    <Button
+                      variant="outline"
+                      leftIcon={<I.card size={14} />}
+                      onClick={() => portalMutation.mutate()}
+                      disabled={portalMutation.isPending}
+                    >
+                      {portalMutation.isPending ? 'Abrindo…' : 'Gerenciar assinatura'}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      leftIcon={<I.card size={14} />}
+                      onClick={() => checkoutMutation.mutate('monthly')}
+                      disabled={checkoutMutation.isPending}
+                    >
+                      {checkoutMutation.isPending ? 'Aguarde…' : 'Assinar agora'}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            {/* Plan cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+              {PLANS.map((p) => {
+                const isCurrent = planType === p.key
+                return (
+                  <Card key={p.key} style={isCurrent ? { border: '1px solid var(--accent)' } : undefined}>
+                    <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div>
+                        <div style={{ fontWeight: 600, marginBottom: 2 }}>{p.label}</div>
+                        <div style={{ fontSize: 22, fontWeight: 700 }}>{p.price}</div>
+                      </div>
+                      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {p.features.map((f) => (
+                          <li key={f} style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 13, color: 'var(--fg-muted)' }}>
+                            <I.check size={12} style={{ color: 'var(--success)', flexShrink: 0 }} />
+                            {f}
+                          </li>
+                        ))}
+                      </ul>
+                      {isCurrent ? (
+                        <Badge tone="success" style={{ alignSelf: 'flex-start' }}>Plano atual</Badge>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          style={{ width: '100%' }}
+                          onClick={() => checkoutMutation.mutate(p.key)}
+                          disabled={checkoutMutation.isPending}
+                        >
+                          Assinar {p.label}
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
