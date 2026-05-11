@@ -13,6 +13,7 @@ const BREADCRUMB_MAP: Record<string, string[]> = {
   '/import': ['Dados', 'Importar'],
   '/export': ['Dados', 'Exportar'],
   '/integrations': ['Dados', 'Integrações'],
+  '/pin-types': ['Workspace', 'Tipos de pin'],
   '/team': ['Workspace', 'Equipe'],
   '/billing': ['Workspace', 'Faturamento'],
   '/settings': ['Workspace', 'Configurações'],

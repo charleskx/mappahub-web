@@ -21,6 +21,7 @@ const SettingsPage = lazy(() => import('../features/settings/SettingsPage'))
 const TeamPage = lazy(() => import('../features/team/TeamPage'))
 const BillingPage = lazy(() => import('../features/billing/BillingPage'))
 const SuperAdminPage = lazy(() => import('../features/super-admin/SuperAdminPage'))
+const PinTypesPage = lazy(() => import('../features/pin-types/PinTypesPage'))
 
 function Loader() {
   return (
@@ -76,6 +77,7 @@ export default function AppRouter() {
                   <Route path="settings" element={<SettingsPage />} />
                   <Route path="team" element={<TeamPage />} />
                   <Route path="billing" element={<BillingPage />} />
+                  <Route path="pin-types" element={<PinTypesPage />} />
                   <Route path="admin" element={<SuperAdminPage />} />
                 </Routes>
               </Shell>
