@@ -204,7 +204,7 @@ export default function PinTypesPage() {
         </div>
       ) : !pinTypes?.length ? (
         <Empty
-          icon={<I.layers size={28} />}
+          icon={<I.pin size={28} />}
           title="Nenhum tipo de pin"
           desc="Crie tipos para classificar seus parceiros no mapa"
           action={<Button variant="primary" onClick={openNew}>Criar tipo</Button>}

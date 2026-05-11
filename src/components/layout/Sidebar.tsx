@@ -32,7 +32,7 @@ const dataItems: NavItem[] = [
 ]
 
 const adminItems: NavItem[] = [
-  { id: 'pin-types', label: 'Tipos de pin', icon: <I.layers /> },
+  { id: 'pin-types', label: 'Tipos de pin', icon: <I.pin /> },
   { id: 'team', label: 'Equipe', icon: <I.users /> },
   { id: 'billing', label: 'Faturamento', icon: <I.card /> },
   { id: 'settings', label: 'Configurações', icon: <I.settings /> },
