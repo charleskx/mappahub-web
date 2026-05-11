@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import type { PinType } from '../../types'
@@ -22,11 +22,12 @@ function PinTypeModal({ open, editing, onClose }: PinTypeModalProps) {
   const [name, setName] = useState(editing?.name ?? '')
   const [color, setColor] = useState(editing?.color ?? '#f59e0b')
 
-  // Reset form when modal opens
-  useState(() => {
-    setName(editing?.name ?? '')
-    setColor(editing?.color ?? '#f59e0b')
-  })
+  useEffect(() => {
+    if (open) {
+      setName(editing?.name ?? '')
+      setColor(editing?.color ?? '#f59e0b')
+    }
+  }, [open, editing])
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -40,12 +41,6 @@ function PinTypeModal({ open, editing, onClose }: PinTypeModalProps) {
     },
     onError: (err: Error) => push({ title: 'Erro ao salvar', desc: err.message, tone: 'error' }),
   })
-
-  // Sync form when editing target changes
-  const handleOpen = () => {
-    setName(editing?.name ?? '')
-    setColor(editing?.color ?? '#f59e0b')
-  }
 
   return (
     <Modal
@@ -65,9 +60,6 @@ function PinTypeModal({ open, editing, onClose }: PinTypeModalProps) {
         </div>
       }
     >
-      {/* invisible trigger to sync state */}
-      {open && <span style={{ display: 'none' }} ref={() => handleOpen()} />}
-
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
         <Field label="Nome">
           <Input
