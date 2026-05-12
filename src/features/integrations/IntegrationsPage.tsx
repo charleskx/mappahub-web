@@ -81,7 +81,7 @@ export default function IntegrationsPage() {
               <CardHeader
                 title={m.name}
                 action={
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                     <Badge tone={m.active ? 'success' : 'warning'} dot>
                       {m.active ? 'Ativo' : 'Inativo'}
                     </Badge>
