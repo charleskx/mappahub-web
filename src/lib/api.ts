@@ -225,6 +225,16 @@ export const api = {
       const { data } = await http.get<PartnerColumn[]>('/partners/columns')
       return data
     },
+    async pins(filters?: {
+      city?: string
+      state?: string
+      visibility?: 'public' | 'internal'
+      pinTypeId?: string
+      geocodeStatus?: 'pending' | 'done' | 'failed'
+    }): Promise<MapPin[]> {
+      const { data } = await http.get<MapPin[]>('/partners/pins', { params: filters })
+      return data
+    },
   },
 
   pinTypes: {

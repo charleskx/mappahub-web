@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import L from 'leaflet'
 import { api } from '../../lib/api'
-import { Badge, Card, Select } from '../../components/ui'
+import { Badge, Card } from '../../components/ui'
 import { I } from '../../components/icons'
 import type { MapPin } from '../../types'
 import { makeClusterGroup, makePinIcon } from './mapUtils'
@@ -167,23 +167,12 @@ export default function MapPage() {
   const clusterGroup = useRef<L.MarkerClusterGroup | null>(null)
   const [mapReady, setMapReady] = useState(false)
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null)
-  const [selectedMapId, setSelectedMapId] = useState<string>('')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [filters, setFilters] = useState<Filters>({ search: '', state: '', city: '', pinTypeId: '', visibility: '' })
 
-  const { data: maps } = useQuery({
-    queryKey: ['maps'],
-    queryFn: () => api.maps.list(),
-  })
-
-  useEffect(() => {
-    if (maps?.length && !selectedMapId) setSelectedMapId(maps[0].id)
-  }, [maps, selectedMapId])
-
   const { data: allPins = [] } = useQuery({
-    queryKey: ['mapPins', selectedMapId],
-    queryFn: () => api.maps.pins(selectedMapId),
-    enabled: !!selectedMapId,
+    queryKey: ['partnerPins'],
+    queryFn: () => api.partners.pins(),
   })
 
   // Derived options from loaded pins
@@ -290,11 +279,6 @@ export default function MapPage() {
               </span>
             )}
           </button>
-          {maps && maps.length > 1 && (
-            <Select value={selectedMapId} onChange={(e) => setSelectedMapId(e.target.value)} style={{ width: 200 }}>
-              {maps.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
-            </Select>
-          )}
         </div>
       </div>
 
