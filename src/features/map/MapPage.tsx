@@ -16,8 +16,9 @@ function loadMapsScript(apiKey: string): Promise<void> {
     if (window.google?.maps) { resolve(); return }
     window.initMap = resolve
     const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap&libraries=marker`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap&libraries=marker&loading=async`
     script.async = true
+    script.defer = true
     script.onerror = reject
     document.head.appendChild(script)
   })
@@ -63,6 +64,7 @@ export default function MapPage() {
   const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([])
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null)
   const [mapsReady, setMapsReady] = useState(false)
+  const [mapMounted, setMapMounted] = useState(false)
   const [mapsError, setMapsError] = useState(false)
   const [selectedMapId, setSelectedMapId] = useState<string>('')
 
@@ -98,34 +100,43 @@ export default function MapPage() {
 
   useEffect(() => {
     if (!mapsReady || !mapRef.current) return
-    mapInstance.current = new google.maps.Map(mapRef.current, {
-      center: { lat: -15.7942, lng: -47.8825 },
-      zoom: 5,
-      mapId: 'atlasync-map',
-      disableDefaultUI: false,
-    })
+    try {
+      mapInstance.current = new google.maps.Map(mapRef.current, {
+        center: { lat: -15.7942, lng: -47.8825 },
+        zoom: 5,
+        mapId: 'atlasync-map',
+        disableDefaultUI: false,
+      })
+      setMapMounted(true)
+    } catch {
+      setMapsError(true)
+    }
   }, [mapsReady])
 
   useEffect(() => {
-    if (!mapInstance.current || !pins) return
+    if (!mapMounted || !mapInstance.current || !pins) return
     markers.current.forEach((m) => { m.map = null })
     markers.current = []
 
     pins.forEach((pin) => {
       if (!pin.lat || !pin.lng) return
-      const el = document.createElement('div')
-      el.style.cssText = `width:12px;height:12px;border-radius:50%;background:${pin.pinType?.color ?? '#f59e0b'};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4);cursor:pointer`
+      try {
+        const el = document.createElement('div')
+        el.style.cssText = `width:12px;height:12px;border-radius:50%;background:${pin.pinType?.color ?? '#f59e0b'};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4);cursor:pointer`
 
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        map: mapInstance.current!,
-        position: { lat: Number(pin.lat), lng: Number(pin.lng) },
-        content: el,
-        title: pin.name,
-      })
-      marker.addListener('click', () => setSelectedPin(pin))
-      markers.current.push(marker)
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+          map: mapInstance.current!,
+          position: { lat: Number(pin.lat), lng: Number(pin.lng) },
+          content: el,
+          title: pin.name,
+        })
+        marker.addListener('click', () => setSelectedPin(pin))
+        markers.current.push(marker)
+      } catch {
+        // skip pins that fail to mount (e.g. invalid key / map not ready)
+      }
     })
-  }, [pins])
+  }, [pins, mapMounted])
 
   if (!settings?.googleMapsApiKey) {
     return (
