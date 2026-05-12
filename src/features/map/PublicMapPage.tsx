@@ -401,39 +401,6 @@ export default function PublicMapPage() {
           </div>
         )}
 
-        {/* Mobile bottom sheet */}
-        {isMobile && filtersOpen && (
-          <>
-            <div
-              onClick={() => setFiltersOpen(false)}
-              style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.4)', zIndex: 200 }}
-            />
-            <div style={{
-              position: 'absolute',
-              bottom: 0, left: 0, right: 0,
-              background: t.bg,
-              borderRadius: '16px 16px 0 0',
-              boxShadow: '0 -4px 24px rgba(0,0,0,.15)',
-              zIndex: 201,
-              maxHeight: '75vh',
-              overflowY: 'auto',
-              padding: '12px 20px 0',
-            }}>
-              {/* Drag handle */}
-              <div style={{ width: 40, height: 4, borderRadius: 2, background: t.border, margin: '0 auto 16px' }} />
-              <FilterPanel
-                filters={filters}
-                states={states}
-                cities={cities}
-                pinTypes={pinTypes}
-                onChange={setFilters}
-                onClose={() => setFiltersOpen(false)}
-                isMobile={true}
-              />
-            </div>
-          </>
-        )}
-
         {/* Map */}
         <div style={{ flex: 1, position: 'relative' }}>
           <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
@@ -447,6 +414,37 @@ export default function PublicMapPage() {
           {selectedPin && <InfoPopup pin={selectedPin} onClose={() => setSelectedPin(null)} />}
         </div>
       </div>
+
+      {/* Mobile bottom sheet — fora do overflow:hidden para não ser recortado */}
+      {isMobile && filtersOpen && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 500 }}>
+          <div
+            onClick={() => setFiltersOpen(false)}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.45)' }}
+          />
+          <div style={{
+            position: 'absolute',
+            bottom: 0, left: 0, right: 0,
+            background: t.bg,
+            borderRadius: '18px 18px 0 0',
+            boxShadow: '0 -4px 32px rgba(0,0,0,.18)',
+            maxHeight: '78vh',
+            overflowY: 'auto',
+            padding: '10px 20px 0',
+          }}>
+            <div style={{ width: 40, height: 4, borderRadius: 2, background: t.border, margin: '0 auto 14px' }} />
+            <FilterPanel
+              filters={filters}
+              states={states}
+              cities={cities}
+              pinTypes={pinTypes}
+              onChange={setFilters}
+              onClose={() => setFiltersOpen(false)}
+              isMobile={true}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
