@@ -4,7 +4,8 @@ import { api } from '../../lib/api'
 import { Badge, Button, Card, CardHeader, Empty, Modal, Progress, Select, Skeleton, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
 
-function formatBytes(bytes: number) {
+function formatBytes(bytes: number | null | undefined) {
+  if (bytes == null) return '—'
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
