@@ -392,6 +392,45 @@ export const api = {
     },
   },
 
+  dashboard: {
+    async stats(): Promise<{
+      partners: {
+        total: number
+        thisMonth: number
+        lastMonth: number
+        geocodedDone: number
+        geocodedFailed: number
+        geocodedPct: number
+        public: number
+        internal: number
+      }
+      imports: { total: number; thisMonth: number; lastMonth: number }
+      geo: {
+        byState: { state: string; count: number }[]
+        byCity: { city: string; state: string; count: number }[]
+        byPinType: { id: string; name: string; color: string; count: number }[]
+      }
+      recentImports: {
+        id: string
+        fileName: string
+        status: string
+        mode: string
+        totalRows: number
+        created: number
+        updated: number
+        removed: number
+        failed: number
+        createdAt: string
+        finishedAt: string | null
+        userName: string
+      }[]
+      partnersByMonth: { month: string; count: number }[]
+    }> {
+      const { data } = await http.get('/dashboard/stats')
+      return data
+    },
+  },
+
   admin: {
     async tenants(): Promise<Tenant[]> {
       const { data } = await http.get<Tenant[]>('/admin/tenants')
