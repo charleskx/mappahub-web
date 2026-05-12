@@ -159,15 +159,6 @@ export default function PartnerSheet({ open, onClose, partner }: PartnerSheetPro
           </Field>
         </div>
 
-        {partner?.geocodeStatus && (
-          <Field label="Status de geocodificação" hint="Gerenciado automaticamente pelo sistema">
-            <Input
-              value={{ done: 'Geocodificado', pending: 'Aguardando geocodificação', failed: 'Falha na geocodificação' }[partner.geocodeStatus] ?? partner.geocodeStatus}
-              disabled
-            />
-          </Field>
-        )}
-
         {/* ── Campos personalizados ────────────────── */}
         {hasDynamic && (
           <>
