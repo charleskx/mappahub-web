@@ -1,101 +1,70 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import L from 'leaflet'
 import { api } from '../../lib/api'
 import type { MapPin } from '../../types'
 
-declare global {
-  interface Window {
-    initPublicMap: () => void
-  }
-}
-
-function loadMapsScript(apiKey: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (window.google?.maps) { resolve(); return }
-    window.initPublicMap = resolve
-    const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initPublicMap&libraries=marker&loading=async`
-    script.async = true
-    script.defer = true
-    script.onerror = reject
-    document.head.appendChild(script)
+function makePinIcon(color: string) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`,
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
   })
 }
 
 export default function PublicMapPage() {
   const { token } = useParams<{ token: string }>()
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstance = useRef<google.maps.Map | null>(null)
-  const markers = useRef<google.maps.marker.AdvancedMarkerElement[]>([])
+  const mapInstance = useRef<L.Map | null>(null)
+  const markersLayer = useRef<L.LayerGroup | null>(null)
   const [pins, setPins] = useState<MapPin[]>([])
   const [error, setError] = useState('')
-  const [mapsReady, setMapsReady] = useState(false)
-  const [mapMounted, setMapMounted] = useState(false)
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     if (!token) return
-    Promise.all([
-      api.maps.publicConfig(token),
-      api.maps.publicPins(token),
-    ])
-      .then(([config, p]) => {
-        if (!config.googleMapsApiKey) {
-          setError('Chave do Google Maps não configurada.')
-          return
-        }
-        setPins(p)
-        return loadMapsScript(config.googleMapsApiKey)
-      })
-      .then((result) => {
-        if (result !== undefined) setMapsReady(true)
-      })
+    api.maps.publicPins(token)
+      .then((p) => { setPins(p); setReady(true) })
       .catch(() => setError('Mapa não encontrado ou acesso negado.'))
   }, [token])
 
+  // Init map once ready
   useEffect(() => {
-    if (!mapsReady || !mapRef.current) return
-    try {
-      mapInstance.current = new google.maps.Map(mapRef.current, {
-        center: { lat: -15.7942, lng: -47.8825 },
-        zoom: 5,
-        mapId: 'atlasync-public-map',
-      })
-      setMapMounted(true)
-    } catch {
-      setError('Erro ao inicializar o mapa.')
-    }
-  }, [mapsReady])
+    if (!ready || !mapRef.current || mapInstance.current) return
+    mapInstance.current = L.map(mapRef.current, {
+      center: [-15.7942, -47.8825],
+      zoom: 5,
+    })
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      maxZoom: 19,
+    }).addTo(mapInstance.current)
+    markersLayer.current = L.layerGroup().addTo(mapInstance.current)
+  }, [ready])
 
+  // Plot pins once map and data are both available
   useEffect(() => {
-    if (!mapMounted || !mapInstance.current || !pins.length) return
-    markers.current.forEach((m) => { m.map = null })
-    markers.current = []
+    if (!markersLayer.current || !pins.length) return
+    markersLayer.current.clearLayers()
 
-    const bounds = new google.maps.LatLngBounds()
-    let hasValidPin = false
+    const bounds = L.latLngBounds([])
+    let hasValid = false
 
     pins.forEach((pin) => {
       if (!pin.lat || !pin.lng) return
-      try {
-        const el = document.createElement('div')
-        el.style.cssText = `width:12px;height:12px;border-radius:50%;background:${pin.pinType?.color ?? '#f59e0b'};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4)`
-
-        const marker = new google.maps.marker.AdvancedMarkerElement({
-          map: mapInstance.current!,
-          position: { lat: Number(pin.lat), lng: Number(pin.lng) },
-          content: el,
-          title: pin.name,
-        })
-        bounds.extend({ lat: Number(pin.lat), lng: Number(pin.lng) })
-        markers.current.push(marker)
-        hasValidPin = true
-      } catch {
-        // skip pins that fail to mount
-      }
+      const color = pin.pinType?.color ?? '#f59e0b'
+      const marker = L.marker([Number(pin.lat), Number(pin.lng)], {
+        icon: makePinIcon(color),
+        title: pin.name,
+      })
+      markersLayer.current!.addLayer(marker)
+      bounds.extend([Number(pin.lat), Number(pin.lng)])
+      hasValid = true
     })
 
-    if (hasValidPin) mapInstance.current?.fitBounds(bounds)
-  }, [pins, mapMounted])
+    if (hasValid) mapInstance.current?.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
+  }, [pins, ready])
 
   if (error) {
     return (
@@ -122,13 +91,8 @@ export default function PublicMapPage() {
           <div className="muted text-sm">{pins.length} parceiro{pins.length !== 1 ? 's' : ''}</div>
         </div>
       </div>
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div style={{ flex: 1 }}>
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
-        {!mapsReady && !error && (
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)' }}>
-            <div className="muted">Carregando mapa…</div>
-          </div>
-        )}
       </div>
     </div>
   )
