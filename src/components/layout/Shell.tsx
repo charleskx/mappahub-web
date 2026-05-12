@@ -30,8 +30,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const path = location.pathname
   const breadcrumbs = BREADCRUMB_MAP[path] ?? [path.replace('/', '')]
   const active = path.replace('/', '')
-  const isFlush = path === '/map'
-
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -54,7 +52,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       className="app-shell"
       data-collapsed={collapsed}
       data-mobile-open={mobileOpen}
-      data-fullscreen={isFlush}
     >
       <Sidebar
         active={active}
