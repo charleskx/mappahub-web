@@ -478,7 +478,7 @@ export default function PublicMapPage() {
         // code 3 = TIMEOUT (transient, retryable)
         setGeoStatus(err.code === 1 ? 'denied' : 'unavailable')
       },
-      { timeout: 10000, enableHighAccuracy: true },
+      { timeout: 15000, maximumAge: 60000 },
     )
   }
 
