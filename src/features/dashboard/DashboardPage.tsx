@@ -157,6 +157,7 @@ export default function DashboardPage() {
                 icon: <I.upload />,
                 value: (data?.imports.thisMonth ?? 0).toLocaleString('pt-BR'),
                 d: importDelta,
+                extra: data ? `${data.imports.total.toLocaleString('pt-BR')} no total` : null,
                 sparkValues: sparkPadded,
               },
               {
