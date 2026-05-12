@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/auth'
 import { I } from '../icons'
 import { DropdownMenu } from '../ui'
+import NotificationsBell from './NotificationsBell'
 
 interface TopbarProps {
   onToggleSidebar: () => void
@@ -63,9 +64,7 @@ export default function Topbar({
           <span className="placeholder">Buscar ou ir para...</span>
           <span className="kbd">⌘K</span>
         </button>
-        <button className="icon-btn" title="Notificações">
-          <I.bell />
-        </button>
+        <NotificationsBell />
         <DropdownMenu
           trigger={
             <button

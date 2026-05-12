@@ -446,6 +446,19 @@ export const api = {
     },
   },
 
+  notifications: {
+    async list(): Promise<Array<{
+      id: string
+      type: 'import_done' | 'import_failed' | 'geocoding_failures' | 'trial_expiring'
+      title: string
+      desc: string
+      createdAt: string
+    }>> {
+      const { data } = await http.get('/notifications')
+      return data
+    },
+  },
+
   admin: {
     async tenants(): Promise<Tenant[]> {
       const { data } = await http.get<Tenant[]>('/admin/tenants')
