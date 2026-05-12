@@ -100,7 +100,7 @@ export default function IntegrationsPage() {
           color: 'var(--warning-fg, #92400e)',
           fontSize: 13,
         }}>
-          <I.alertTriangle size={15} style={{ flexShrink: 0 }} />
+          <I.alert size={15} style={{ flexShrink: 0 }} />
           <span>
             O mapa público está <strong>desabilitado</strong>. Links existentes ficam inacessíveis.{' '}
             <button
@@ -120,7 +120,7 @@ export default function IntegrationsPage() {
           icon={<I.code size={28} />}
           title="Nenhum embed criado"
           desc="Crie um embed para compartilhar o mapa de parceiros publicamente"
-          action={<Button variant="primary" onClick={() => setCreateOpen(true)}>Criar embed</Button>}
+          action={<Button variant="primary" disabled={!publicMapEnabled} onClick={() => publicMapEnabled && setCreateOpen(true)}>Criar embed</Button>}
         />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
