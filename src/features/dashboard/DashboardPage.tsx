@@ -81,18 +81,16 @@ export default function DashboardPage() {
   const firstName = user?.name?.split(' ')[0] ?? 'visitante'
   const [geoTab, setGeoTab] = useState('estado')
 
-  // Poll importJobs to detect active imports
   const { data: importJobs } = useQuery({
     queryKey: ['importJobs'],
     queryFn: () => api.import.list(),
-    refetchInterval: 5000,
+    refetchInterval: 4000,
   })
   const hasActiveImport = importJobs?.some(j => j.status === 'queued' || j.status === 'processing') ?? false
 
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: () => api.dashboard.stats(),
-    staleTime: 60_000,
     refetchInterval: hasActiveImport ? 3000 : false,
   })
 
@@ -230,7 +228,7 @@ export default function DashboardPage() {
                 ))
               : geoTab !== 'tipo'
               ? geoList.length > 0
-                ? geoList.map((r) => <GeoRow key={r.label} label={r.label} count={r.count} max={geoMax} />)
+                ? geoList.map((r) => <GeoRow key={`${geoTab}-${r.label}`} label={r.label} count={r.count} max={geoMax} />)
                 : <div className="muted text-sm" style={{ padding: '16px 0', textAlign: 'center' }}>Sem dados geográficos ainda</div>
               : data?.geo.byPinType.length
               ? data.geo.byPinType.map((r) => <PinTypeRow key={r.id} name={r.name} color={r.color} count={r.count} max={pinTypeMax} />)
