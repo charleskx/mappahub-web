@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
-import { Badge, Button, Card, CardHeader, Empty, Progress, Select, Skeleton, useToast } from '../../components/ui'
+import { Badge, Button, Card, CardHeader, Empty, Modal, Progress, Select, Skeleton, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
 
 function formatBytes(bytes: number) {
@@ -25,6 +25,7 @@ export default function ImportPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [mode, setMode] = useState<'full' | 'incremental'>('full')
+  const [pendingFile, setPendingFile] = useState<File | null>(null)
 
   const { data: jobs, isLoading } = useQuery({
     queryKey: ['importJobs'],
@@ -34,10 +35,6 @@ export default function ImportPage() {
 
   const handleFile = useCallback(
     async (file: File) => {
-      if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
-        push({ title: 'Formato inválido', desc: 'Use arquivos .xlsx, .xls ou .csv', tone: 'error' })
-        return
-      }
       setUploading(true)
       setUploadProgress(0)
       try {
@@ -79,16 +76,31 @@ export default function ImportPage() {
     [push, qc, mode],
   )
 
+  const requestUpload = (file: File) => {
+    if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
+      push({ title: 'Formato inválido', desc: 'Use arquivos .xlsx, .xls ou .csv', tone: 'error' })
+      return
+    }
+    setPendingFile(file)
+  }
+
+  const confirmUpload = () => {
+    if (pendingFile) {
+      setPendingFile(null)
+      handleFile(pendingFile)
+    }
+  }
+
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setDragging(false)
     const file = e.dataTransfer.files[0]
-    if (file) handleFile(file)
+    if (file) requestUpload(file)
   }
 
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) handleFile(file)
+    if (file) requestUpload(file)
     e.target.value = ''
   }
 
@@ -143,6 +155,57 @@ export default function ImportPage() {
           )}
         </div>
       </Card>
+
+      {/* Confirmation modal */}
+      <Modal
+        open={!!pendingFile}
+        onClose={() => setPendingFile(null)}
+        title={mode === 'full' ? 'Atenção: substituição total' : 'Confirmar importação'}
+        desc={mode === 'full'
+          ? 'Esta ação substituirá todos os parceiros existentes pelos dados da planilha. Registros que não estiverem no arquivo serão removidos permanentemente.'
+          : 'Os dados da planilha serão mesclados com a base atual. Registros existentes serão atualizados e novos serão criados.'}
+        footer={
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={() => setPendingFile(null)}>Cancelar</Button>
+            <Button variant={mode === 'full' ? 'danger' : 'primary'} onClick={confirmUpload}>
+              {mode === 'full' ? 'Sim, substituir tudo' : 'Confirmar importação'}
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {mode === 'full' && (
+            <div style={{
+              display: 'flex', gap: 10, alignItems: 'flex-start',
+              background: 'color-mix(in srgb, var(--danger) 8%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)',
+              borderRadius: 8, padding: '10px 12px',
+            }}>
+              <I.alert size={16} style={{ color: 'var(--danger)', flexShrink: 0, marginTop: 1 }} />
+              <span className="text-sm" style={{ color: 'var(--danger)' }}>
+                Esta operação <strong>não pode ser desfeita</strong>. Exporte um backup antes de continuar.
+              </span>
+            </div>
+          )}
+          <div style={{
+            display: 'flex', flexDirection: 'column', gap: 6,
+            background: 'var(--bg-subtle)', borderRadius: 8, padding: '10px 12px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="muted text-sm">Arquivo</span>
+              <span className="text-sm" style={{ fontWeight: 500 }}>{pendingFile?.name}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="muted text-sm">Tamanho</span>
+              <span className="text-sm">{pendingFile ? formatBytes(pendingFile.size) : '—'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span className="muted text-sm">Modo</span>
+              <span className="text-sm">{mode === 'full' ? 'Substituição total' : 'Incremental'}</span>
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       <Card>
         <CardHeader
