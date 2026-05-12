@@ -297,15 +297,21 @@ export const api = {
     },
     async publicPins(
       token: string,
-      filters?: { city?: string; state?: string },
+      filters?: { city?: string; state?: string; pinTypeId?: string },
     ): Promise<MapPin[]> {
       const { data } = await axios.get<MapPin[]>(`${BASE_URL}/maps/public/${token}/pins`, {
         params: filters,
       })
       return data
     },
-    async publicLocalities(token: string): Promise<{ city: string; state: string }[]> {
-      const { data } = await axios.get(`${BASE_URL}/maps/public/${token}/localities`)
+    async publicLocalities(token: string, state?: string): Promise<{ cities: string[]; states: string[] }> {
+      const { data } = await axios.get(`${BASE_URL}/maps/public/${token}/localities`, {
+        params: state ? { state } : undefined,
+      })
+      return data
+    },
+    async publicPinTypes(token: string): Promise<{ id: string; name: string; color: string }[]> {
+      const { data } = await axios.get(`${BASE_URL}/maps/public/${token}/pin-types`)
       return data
     },
     async publicConfig(token: string): Promise<{ googleMapsApiKey: string | null }> {
