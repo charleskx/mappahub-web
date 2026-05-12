@@ -218,6 +218,7 @@ export const api = {
         pinTypeId?: string | null
         visibility?: 'public' | 'internal'
         dynamicValues?: Record<string, string>
+        notes?: string | null
       },
     ): Promise<Partner> {
       const { data } = await http.patch<Partner>(`/partners/${id}`, payload)

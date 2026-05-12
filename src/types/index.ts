@@ -43,7 +43,8 @@ export interface Partner {
   pinTypeName?: string | null
   pinTypeColor?: string | null
   geocodeStatus?: 'pending' | 'done' | 'failed' | null
-  dynamicValues?: Record<string, string>
+  dynamicValues?: Record<string, string | null>
+  notes?: string | null
   createdAt: string
   updatedAt: string
 }

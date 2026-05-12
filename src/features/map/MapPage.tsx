@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import L from 'leaflet'
 import { api } from '../../lib/api'
-import { Badge, Card, Select } from '../../components/ui'
+import { Badge, Select } from '../../components/ui'
 import { I } from '../../components/icons'
-import type { MapPin } from '../../types'
+import type { MapPin, PartnerColumn } from '../../types'
 import { makeClusterGroup, makePinIcon } from './mapUtils'
 
 // ── Interfaces ────────────────────────────────────────────────────────────────
@@ -18,38 +19,174 @@ interface Filters {
 
 // ── InfoPopup ─────────────────────────────────────────────────────────────────
 function InfoPopup({ pin, onClose }: { pin: MapPin; onClose: () => void }) {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const [notes, setNotes] = useState('')
+  const [notesDirty, setNotesDirty] = useState(false)
+
+  const { data: partner, isLoading } = useQuery({
+    queryKey: ['partner', pin.id],
+    queryFn: () => api.partners.getById(pin.id),
+    staleTime: 30_000,
+  })
+
+  const { data: columns = [] } = useQuery<PartnerColumn[]>({
+    queryKey: ['partnerColumns'],
+    queryFn: () => api.partners.getColumns(),
+    staleTime: 60_000,
+  })
+
+  // Sync notes from fetched partner
+  useEffect(() => {
+    if (partner && !notesDirty) {
+      setNotes(partner.notes ?? '')
+    }
+  }, [partner, notesDirty])
+
+  const saveNotes = useMutation({
+    mutationFn: () => api.partners.update(pin.id, { notes }),
+    onSuccess: () => {
+      setNotesDirty(false)
+      queryClient.invalidateQueries({ queryKey: ['partner', pin.id] })
+    },
+  })
+
+  const handleEdit = () => {
+    onClose()
+    navigate(`/partners?edit=${pin.id}`)
+  }
+
+  const geocodeLabel: Record<string, string> = {
+    done: 'Geocodificado',
+    pending: 'Aguardando geocodificação',
+    failed: 'Falha na geocodificação',
+  }
+
   return (
-    <Card
+    <div
       style={{
         position: 'absolute',
         top: 16,
         right: 16,
-        width: 280,
+        bottom: 16,
+        width: 360,
         zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--bg-elev)',
+        border: '1px solid var(--border)',
+        borderRadius: 12,
         boxShadow: 'var(--shadow-lg)',
+        overflow: 'hidden',
       }}
     >
-      <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div style={{ fontWeight: 600 }}>{pin.name}</div>
+      {/* Header */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+        padding: '14px 16px', borderBottom: '1px solid var(--border)', flexShrink: 0,
+      }}>
+        <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+          <div style={{ fontWeight: 700, fontSize: 15, lineHeight: 1.3, wordBreak: 'break-word' }}>
+            {pin.name}
+          </div>
+          {pin.pinType && (
+            <Badge style={{ marginTop: 6, background: (pin.pinType.color ?? '#888') + '22', color: pin.pinType.color ?? undefined }}>
+              {pin.pinType.name}
+            </Badge>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+          <button
+            className="btn btn-primary"
+            style={{ fontSize: 12, padding: '4px 10px', height: 28, display: 'flex', alignItems: 'center', gap: 4 }}
+            onClick={handleEdit}
+          >
+            <I.edit size={12} />
+            Editar
+          </button>
           <button className="icon-btn" onClick={onClose}><I.x size={14} /></button>
         </div>
-        {pin.address && <div className="muted text-sm">{pin.address}</div>}
-        {pin.city && (
-          <div className="muted text-sm">{[pin.city, pin.state].filter(Boolean).join(' / ')}</div>
-        )}
-        {pin.visibility && (
-          <div className="muted text-sm" style={{ textTransform: 'capitalize' }}>
-            {pin.visibility === 'public' ? 'Público' : 'Interno'}
+      </div>
+
+      {/* Body — scrollable */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {isLoading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 32, color: 'var(--fg-muted)', fontSize: 13 }}>
+            Carregando…
           </div>
-        )}
-        {pin.pinType && (
-          <Badge style={{ marginTop: 4, background: (pin.pinType.color ?? '#888') + '22', color: pin.pinType.color ?? undefined }}>
-            {pin.pinType.name}
-          </Badge>
+        ) : (
+          <>
+            {/* Standard fields */}
+            <Section label="Informações">
+              <Field label="Endereço" value={partner?.address ?? pin.address} />
+              <Field label="Cidade / Estado" value={[partner?.city ?? pin.city, partner?.state ?? pin.state].filter(Boolean).join(' / ')} />
+              <Field label="Visibilidade" value={(partner?.visibility ?? pin.visibility) === 'public' ? 'Público' : 'Interno'} />
+              {partner?.geocodeStatus && (
+                <Field label="Geocodificação" value={geocodeLabel[partner.geocodeStatus] ?? partner.geocodeStatus} />
+              )}
+            </Section>
+
+            {/* Custom / dynamic fields */}
+            {columns.length > 0 && partner?.dynamicValues && Object.keys(partner.dynamicValues).some(k => partner.dynamicValues![k] != null) && (
+              <Section label="Campos personalizados">
+                {columns.map(col => {
+                  const val = partner.dynamicValues?.[col.key]
+                  if (!val) return null
+                  return <Field key={col.key} label={col.label} value={val} />
+                })}
+              </Section>
+            )}
+
+            {/* Observation / notes */}
+            <Section label="Observação">
+              <textarea
+                className="input"
+                style={{ width: '100%', minHeight: 90, resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit', fontSize: 13 }}
+                placeholder="Adicione uma observação…"
+                value={notes}
+                onChange={e => { setNotes(e.target.value); setNotesDirty(true) }}
+              />
+              {notesDirty && (
+                <button
+                  className="btn btn-primary"
+                  style={{ marginTop: 6, fontSize: 12, padding: '4px 12px', height: 28, alignSelf: 'flex-end' }}
+                  onClick={() => saveNotes.mutate()}
+                  disabled={saveNotes.isPending}
+                >
+                  {saveNotes.isPending ? 'Salvando…' : 'Salvar'}
+                </button>
+              )}
+              {saveNotes.isSuccess && !notesDirty && (
+                <span style={{ fontSize: 12, color: 'var(--success)', marginTop: 4 }}>Salvo ✓</span>
+              )}
+            </Section>
+          </>
         )}
       </div>
-    </Card>
+    </div>
+  )
+}
+
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--fg-muted)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function Field({ label, value }: { label: string; value?: string | null }) {
+  if (!value) return null
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <span style={{ fontSize: 11, color: 'var(--fg-subtle)' }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'var(--fg)', lineHeight: 1.4 }}>{value}</span>
+    </div>
   )
 }
 

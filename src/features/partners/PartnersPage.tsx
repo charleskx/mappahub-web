@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import type { Partner } from '../../types'
@@ -9,11 +10,36 @@ import PartnerSheet from './PartnerSheet'
 export default function PartnersPage() {
   const qc = useQueryClient()
   const { push } = useToast()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [page, setPage] = useState(1)
   const [visibility, setVisibility] = useState<'public' | 'internal' | ''>('')
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editing, setEditing] = useState<Partner | null>(null)
   const [confirmTarget, setConfirmTarget] = useState<Partner | null>(null)
+
+  // Open edit sheet when ?edit=partnerId is present in the URL
+  const editId = searchParams.get('edit')
+  useEffect(() => {
+    if (!editId) return
+    api.partners.getById(editId).then((partner) => {
+      setEditing(partner)
+      setSheetOpen(true)
+      // Clear the query param without triggering navigation
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('edit')
+        return next
+      }, { replace: true })
+    }).catch(() => {
+      // Partner not found or no access — silently clear param
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev)
+        next.delete('edit')
+        return next
+      }, { replace: true })
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId])
 
   const { data, isLoading } = useQuery({
     queryKey: ['partners', page, visibility],
