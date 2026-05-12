@@ -52,7 +52,7 @@ export default function BillingPage() {
 
   const planType = subscription?.planType ?? ''
   const daysUsed = subscription?.trialEndsAt
-    ? Math.max(0, 30 - Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / 86_400_000))
+    ? Math.max(0, 14 - Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / 86_400_000))
     : 0
 
   return (
@@ -80,9 +80,9 @@ export default function BillingPage() {
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                       <span className="muted text-sm">Período trial</span>
-                      <span className="muted text-sm">{daysUsed} / 30 dias usados</span>
+                      <span className="muted text-sm">{daysUsed} / 14 dias usados</span>
                     </div>
-                    <Progress value={(daysUsed / 30) * 100} tone={daysUsed >= 25 ? 'danger' : undefined} />
+                    <Progress value={(daysUsed / 14) * 100} tone={daysUsed >= 11 ? 'danger' : undefined} />
                     <div className="muted text-sm" style={{ marginTop: 8 }}>
                       {subscription?.trialEndsAt
                         ? `Seu trial expira em ${new Date(subscription.trialEndsAt).toLocaleDateString('pt-BR')}.`

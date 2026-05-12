@@ -37,7 +37,7 @@ export default function AuthAside() {
           </div>
           <div>
             <div className="mono" style={{ color: 'var(--fg)', fontSize: 18, fontWeight: 600 }}>
-              30d
+              14d
             </div>
             trial gratuito
           </div>

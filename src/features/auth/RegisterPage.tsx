@@ -44,7 +44,7 @@ export default function RegisterPage() {
           </h1>
           <div className="muted text-sm">
             {step === 1
-              ? '30 dias grátis. Sem cartão de crédito.'
+              ? '14 dias grátis. Sem cartão de crédito.'
               : 'Vamos personalizar o workspace.'}
           </div>
           <div className="auth-form-fields">

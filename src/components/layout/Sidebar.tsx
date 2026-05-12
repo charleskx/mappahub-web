@@ -144,7 +144,7 @@ export default function Sidebar({
               </div>
               <div className="sidebar-trial-meta">{trial.daysLeft} dias restantes</div>
               <div className="sidebar-trial-bar">
-                <div style={{ width: `${((30 - trial.daysLeft) / 30) * 100}%` }} />
+                <div style={{ width: `${((14 - trial.daysLeft) / 14) * 100}%` }} />
               </div>
               <a className="sidebar-trial-cta" onClick={() => handleNav('billing')}>
                 Assinar agora →

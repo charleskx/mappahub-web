@@ -85,7 +85,7 @@ export default function OnboardingPage() {
                     <I.check size={28} />
                   </div>
                   <div style={{ fontWeight: 600, fontSize: 16 }}>Workspace pronto!</div>
-                  <div className="muted text-sm" style={{ marginTop: 4 }}>Você tem 30 dias grátis para explorar tudo.</div>
+                  <div className="muted text-sm" style={{ marginTop: 4 }}>Você tem 14 dias grátis para explorar tudo.</div>
                 </div>
               </Card>
             )}
