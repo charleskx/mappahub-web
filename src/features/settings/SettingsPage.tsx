@@ -53,6 +53,7 @@ function SecurityTab() {
   const [code, setCode] = useState('')
   const [disableCode, setDisableCode] = useState('')
   const [disableOpen, setDisableOpen] = useState(false)
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null)
 
   const openSetup = async () => {
     try {
@@ -67,12 +68,12 @@ function SecurityTab() {
   const confirmSetup = async () => {
     if (code.length < 6) return
     try {
-      await api.auth.verify2fa(code)
+      const result = await api.auth.verify2fa(code)
       await refreshUser()
-      push({ title: '2FA ativado!', tone: 'success' })
       setSetupOpen(false)
       setCode('')
       setQrData(null)
+      setRecoveryCodes(result.recoveryCodes)
     } catch {
       push({ title: 'Código inválido', tone: 'error' })
     }
@@ -149,6 +150,34 @@ function SecurityTab() {
             2. Insira o código de 6 dígitos gerado pelo aplicativo:
           </p>
           <OtpInput value={code} onChange={setCode} length={6} />
+        </div>
+      </Modal>
+
+      {/* Recovery codes modal */}
+      <Modal
+        open={!!recoveryCodes}
+        onClose={() => setRecoveryCodes(null)}
+        title="2FA ativado — guarde seus códigos"
+        desc="Salve estes códigos em um lugar seguro. Cada um pode ser usado uma vez para acessar sua conta caso perca o dispositivo."
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button variant="primary" onClick={() => setRecoveryCodes(null)}>Entendi, já salvei</Button>
+          </div>
+        }
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, margin: '4px 0' }}>
+          {recoveryCodes?.map((c) => (
+            <code key={c} style={{
+              fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600,
+              background: 'var(--bg-subtle)', border: '1px solid var(--border)',
+              borderRadius: 6, padding: '7px 12px', textAlign: 'center',
+              letterSpacing: '0.08em', color: 'var(--fg)',
+            }}>{c}</code>
+          ))}
+        </div>
+        <div className="muted text-xs" style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <I.alert size={12} />
+          Estes códigos não serão exibidos novamente.
         </div>
       </Modal>
 

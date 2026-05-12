@@ -154,13 +154,18 @@ export const api = {
       return data
     },
 
-    async verify2fa(code: string): Promise<{ success: true }> {
-      const { data } = await http.post<{ success: true }>('/auth/2fa/verify', { code })
+    async verify2fa(code: string): Promise<{ success: true; recoveryCodes: string[] }> {
+      const { data } = await http.post<{ success: true; recoveryCodes: string[] }>('/auth/2fa/verify', { code })
       return data
     },
 
     async disable2fa(code: string) {
       await http.delete('/auth/2fa', { data: { code } })
+    },
+
+    async loginWithRecoveryCode(tempToken: string, code: string): Promise<void> {
+      const { data } = await http.post<{ accessToken: string; refreshToken: string }>('/auth/2fa/recover', { tempToken, code })
+      storeTokens(data)
     },
   },
 
