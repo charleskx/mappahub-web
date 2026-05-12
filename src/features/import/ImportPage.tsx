@@ -54,6 +54,8 @@ export default function ImportPage() {
             if (job.status === 'done' || job.status === 'failed') {
               clearInterval(poll)
               qc.invalidateQueries({ queryKey: ['importJobs'] })
+              qc.invalidateQueries({ queryKey: ['dashboard', 'stats'] })
+              qc.invalidateQueries({ queryKey: ['partners'] })
               push({
                 title: job.status === 'done' ? 'Importação concluída' : 'Importação falhou',
                 desc: job.status === 'done'

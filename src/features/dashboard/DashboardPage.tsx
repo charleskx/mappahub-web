@@ -81,10 +81,19 @@ export default function DashboardPage() {
   const firstName = user?.name?.split(' ')[0] ?? 'visitante'
   const [geoTab, setGeoTab] = useState('estado')
 
+  // Poll importJobs to detect active imports
+  const { data: importJobs } = useQuery({
+    queryKey: ['importJobs'],
+    queryFn: () => api.import.list(),
+    refetchInterval: 5000,
+  })
+  const hasActiveImport = importJobs?.some(j => j.status === 'queued' || j.status === 'processing') ?? false
+
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: () => api.dashboard.stats(),
     staleTime: 60_000,
+    refetchInterval: hasActiveImport ? 3000 : false,
   })
 
   // Sparkline: last 6 months of partner creation
