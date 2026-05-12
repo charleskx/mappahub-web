@@ -1,8 +1,18 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
-import { Badge, Button, Card, CardHeader, Empty, Field, Input, Modal, useToast } from '../../components/ui'
+import { Badge, Button, Card, CardHeader, Empty, Field, Input, Modal, Segmented, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
+
+type EmbedType = 'iframe' | 'script'
+
+function buildSnippet(token: string, type: EmbedType): string {
+  const base = window.location.origin
+  if (type === 'iframe') {
+    return `<iframe src="${base}/public-map/${token}" width="100%" height="500" frameborder="0" allowfullscreen></iframe>`
+  }
+  return `<div id="atlasync-map"></div>\n<script src="${base}/sdk/embed.js"></script>\n<script>\n  AtlasyncMap.init({ token: "${token}", container: "atlasync-map" })\n</script>`
+}
 
 export default function IntegrationsPage() {
   const qc = useQueryClient()
@@ -10,6 +20,7 @@ export default function IntegrationsPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [mapName, setMapName] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [embedTypes, setEmbedTypes] = useState<Record<string, EmbedType>>({})
 
   const { data: maps, isLoading } = useQuery({
     queryKey: ['maps'],
@@ -36,10 +47,11 @@ export default function IntegrationsPage() {
     onError: () => push({ title: 'Erro ao remover', tone: 'error' }),
   })
 
+  const getType = (id: string): EmbedType => embedTypes[id] ?? 'iframe'
+  const setType = (id: string, type: EmbedType) => setEmbedTypes((prev) => ({ ...prev, [id]: type }))
+
   const copyEmbed = async (embedToken: string, id: string) => {
-    const base = window.location.origin
-    const code = `<iframe src="${base}/public-map/${embedToken}" width="100%" height="500" frameborder="0" allowfullscreen></iframe>`
-    await navigator.clipboard.writeText(code)
+    await navigator.clipboard.writeText(buildSnippet(embedToken, getType(id)))
     setCopiedId(id)
     setTimeout(() => setCopiedId(null), 2000)
   }
@@ -96,24 +108,34 @@ export default function IntegrationsPage() {
                   </div>
                 }
               />
-              <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {m.embedToken ? (
                   <>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <Segmented
+                        value={getType(m.id)}
+                        onChange={(v) => setType(m.id, v as EmbedType)}
+                        items={[
+                          { value: 'iframe', label: 'iFrame' },
+                          { value: 'script', label: 'Script' },
+                        ]}
+                      />
+                    </div>
                     <div
                       style={{
                         background: 'var(--bg-subtle)',
                         border: '1px solid var(--border)',
                         borderRadius: 6,
-                        padding: '8px 12px',
+                        padding: '10px 12px',
                         fontFamily: 'var(--font-mono)',
                         fontSize: 12,
                         color: 'var(--fg-muted)',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-all',
+                        lineHeight: 1.6,
                       }}
                     >
-                      {`<iframe src="${window.location.origin}/public-map/${m.embedToken}" width="100%" height="500" frameborder="0"></iframe>`}
+                      {buildSnippet(m.embedToken, getType(m.id))}
                     </div>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <Button
@@ -122,7 +144,7 @@ export default function IntegrationsPage() {
                         leftIcon={<I.copy size={12} />}
                         onClick={() => copyEmbed(m.embedToken!, m.id)}
                       >
-                        {copiedId === m.id ? 'Copiado!' : 'Copiar embed'}
+                        {copiedId === m.id ? 'Copiado!' : 'Copiar código'}
                       </Button>
                       <Button
                         variant="ghost"
