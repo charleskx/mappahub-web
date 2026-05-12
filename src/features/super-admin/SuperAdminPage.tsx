@@ -64,66 +64,97 @@ function TenantImportsModal({
       <Modal
         open={open}
         onClose={onClose}
-        title={`Últimos imports — ${tenantName}`}
-        desc="Os 10 imports mais recentes desta empresa. Revertendo, parceiros criados serão removidos e parceiros apagados serão restaurados. Atualizações não são revertidas."
+        size="xl"
+        title={`Histórico de imports — ${tenantName}`}
+        desc="Últimos 10 imports desta empresa. Reverter restaura parceiros apagados e remove os criados pelo job. Atualizações não são desfeitas."
       >
         {isLoading ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[...Array(4)].map((_, i) => <Skeleton key={i} h={44} />)}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {[...Array(4)].map((_, i) => <Skeleton key={i} h={72} />)}
           </div>
         ) : !imports?.length ? (
-          <div className="muted text-sm" style={{ textAlign: 'center', padding: '24px 0' }}>
-            Nenhuma importação encontrada.
+          <div style={{ textAlign: 'center', padding: '32px 0' }}>
+            <I.fileSheet size={32} style={{ color: 'var(--fg-muted)', marginBottom: 10 }} />
+            <div className="muted text-sm">Nenhuma importação encontrada.</div>
           </div>
         ) : (
-          <table className="table" style={{ marginTop: 4, fontSize: 13 }}>
-            <thead>
-              <tr>
-                <th>Arquivo</th>
-                <th>Modo</th>
-                <th>Criados</th>
-                <th>Removidos</th>
-                <th>Status</th>
-                <th>Data</th>
-                <th style={{ width: 80 }} />
-              </tr>
-            </thead>
-            <tbody>
-              {imports.map((job) => (
-                <tr key={job.id}>
-                  <td>
-                    <div style={{ fontWeight: 500, maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {imports.map((job) => (
+              <div
+                key={job.id}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr auto',
+                  gap: 12,
+                  alignItems: 'center',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                  opacity: job.rolledBackAt ? 0.6 : 1,
+                }}
+              >
+                {/* Left: file info + stats */}
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <I.fileSheet size={14} style={{ color: 'var(--fg-muted)', flexShrink: 0 }} />
+                    <span style={{ fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {job.fileName ?? '—'}
+                    </span>
+                    <span className="muted text-sm" style={{ flexShrink: 0 }}>{formatBytes(job.fileSize)}</span>
+                    <span style={{ marginLeft: 'auto', flexShrink: 0 }}>
+                      {job.rolledBackAt
+                        ? <Badge tone="warning">Revertido</Badge>
+                        : <Badge tone={statusTone(job.status)}>{job.status}</Badge>
+                      }
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 16 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <span className="muted text-sm">Modo</span>
+                      <span style={{ fontSize: 13, fontWeight: 500 }}>{job.mode === 'full' ? 'Substituição total' : 'Incremental'}</span>
                     </div>
-                    <div className="muted text-sm">{formatBytes(job.fileSize)}</div>
-                  </td>
-                  <td className="muted">{job.mode === 'full' ? 'Total' : 'Incremental'}</td>
-                  <td>{job.created ?? '—'}</td>
-                  <td>{job.removed ?? '—'}</td>
-                  <td>
-                    {job.rolledBackAt ? (
-                      <Badge tone="warning">Revertido</Badge>
-                    ) : (
-                      <Badge tone={statusTone(job.status)}>{job.status}</Badge>
-                    )}
-                  </td>
-                  <td className="muted">{new Date(job.createdAt).toLocaleDateString('pt-BR')}</td>
-                  <td>
-                    {job.status === 'done' && !job.rolledBackAt && (
-                      <button
-                        className="icon-btn"
-                        title="Reverter import"
-                        style={{ color: 'var(--danger)' }}
-                        onClick={() => setConfirmJob(job)}
-                      >
-                        <I.undo size={14} />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div style={{ width: 1, background: 'var(--border)' }} />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <span className="muted text-sm">Criados</span>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--success)' }}>{job.created ?? 0}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <span className="muted text-sm">Atualizados</span>
+                      <span style={{ fontSize: 13, fontWeight: 500 }}>{job.updated ?? 0}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <span className="muted text-sm">Removidos</span>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: job.removed ? 'var(--danger)' : undefined }}>{job.removed ?? 0}</span>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      <span className="muted text-sm">Erros</span>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: job.failed ? 'var(--danger)' : undefined }}>{job.failed ?? 0}</span>
+                    </div>
+                    <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', gap: 1, textAlign: 'right' }}>
+                      <span className="muted text-sm">Data</span>
+                      <span style={{ fontSize: 13 }}>{new Date(job.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: rollback button */}
+                <div>
+                  {job.status === 'done' && !job.rolledBackAt && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      leftIcon={<I.undo size={12} />}
+                      onClick={() => setConfirmJob(job)}
+                      style={{ color: 'var(--danger)', borderColor: 'color-mix(in srgb, var(--danger) 30%, transparent)', whiteSpace: 'nowrap' }}
+                    >
+                      Reverter
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </Modal>
 
