@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { api } from '../../lib/api'
 import { Badge, Button, Card, CardHeader, Empty, Field, Input, Modal, Segmented, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
@@ -17,10 +18,18 @@ function buildSnippet(token: string, type: EmbedType): string {
 export default function IntegrationsPage() {
   const qc = useQueryClient()
   const { push } = useToast()
+  const navigate = useNavigate()
   const [createOpen, setCreateOpen] = useState(false)
   const [mapName, setMapName] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [embedTypes, setEmbedTypes] = useState<Record<string, EmbedType>>({})
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api.settings.get(),
+  })
+
+  const publicMapEnabled = settings?.publicMapEnabled ?? true
 
   const { data: maps, isLoading } = useQuery({
     queryKey: ['maps'],
@@ -71,11 +80,38 @@ export default function IntegrationsPage() {
           <div className="muted text-sm">Gere embeds públicos do seu mapa de parceiros</div>
         </div>
         <div className="page-actions">
-          <Button variant="primary" leftIcon={<I.plus size={14} />} onClick={() => setCreateOpen(true)}>
+          <Button
+            variant="primary"
+            leftIcon={<I.plus size={14} />}
+            disabled={!publicMapEnabled}
+            onClick={() => setCreateOpen(true)}
+          >
             Novo embed
           </Button>
         </div>
       </div>
+
+      {!publicMapEnabled && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 14px', borderRadius: 8,
+          background: 'var(--warning-soft, #fef3c7)',
+          border: '1px solid var(--warning-border, #fcd34d)',
+          color: 'var(--warning-fg, #92400e)',
+          fontSize: 13,
+        }}>
+          <I.alertTriangle size={15} style={{ flexShrink: 0 }} />
+          <span>
+            O mapa público está <strong>desabilitado</strong>. Links existentes ficam inacessíveis.{' '}
+            <button
+              onClick={() => navigate('/settings?tab=workspace')}
+              style={{ color: 'inherit', fontWeight: 600, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              Habilitar nas configurações →
+            </button>
+          </span>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="muted">Carregando…</div>
