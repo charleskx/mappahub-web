@@ -52,6 +52,17 @@ function makeUserIcon() {
   })
 }
 
+// ── Geo error types ───────────────────────────────────────────────────────────
+type GeoStatus = 'idle' | 'loading' | 'granted' | 'denied' | 'unavailable'
+
+const GEO_ERROR: Record<GeoStatus, { label: string; retryable: boolean }> = {
+  idle:        { label: '',                                                           retryable: false },
+  loading:     { label: 'Localizando…',                                               retryable: false },
+  granted:     { label: 'Localização ativa',                                          retryable: false },
+  denied:      { label: 'Permissão negada pelo navegador',                            retryable: false },
+  unavailable: { label: 'Verifique as permissões de localização do sistema',          retryable: true  },
+}
+
 // ── Interfaces ────────────────────────────────────────────────────────────────
 interface Filters {
   state: string
@@ -128,7 +139,7 @@ interface FilterPanelProps {
   cities: string[]
   pinTypes: { id: string; name: string; color: string }[]
   userLocation: UserLocation | null
-  geoStatus: 'idle' | 'loading' | 'granted' | 'denied'
+  geoStatus: GeoStatus
   radius: number
   onChange: (f: Filters) => void
   onRequestGeo: () => void
@@ -179,24 +190,38 @@ function FilterPanel({
       <div style={field}>
         <label style={label}>Localização</label>
         {!userLocation ? (
-          <button
-            onClick={onRequestGeo}
-            disabled={geoStatus === 'loading' || geoStatus === 'denied'}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              padding: '9px 12px', borderRadius: t.radiusSm,
-              border: `1.5px solid ${geoStatus === 'denied' ? t.border : t.geo}`,
-              background: geoStatus === 'denied' ? t.bgSubtle : `${t.geo}10`,
-              color: geoStatus === 'denied' ? t.fgMuted : t.geo,
-              fontSize: 13, fontWeight: 600, cursor: geoStatus === 'denied' ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit', transition: 'all .15s',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-            </svg>
-            {geoStatus === 'loading' ? 'Localizando…' : geoStatus === 'denied' ? 'Permissão negada' : 'Usar minha localização'}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <button
+              onClick={onRequestGeo}
+              disabled={geoStatus === 'loading' || geoStatus === 'denied'}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                padding: '9px 12px', borderRadius: t.radiusSm,
+                border: `1.5px solid ${geoStatus === 'denied' ? t.border : geoStatus === 'unavailable' ? '#f59e0b' : t.geo}`,
+                background: geoStatus === 'denied' ? t.bgSubtle : geoStatus === 'unavailable' ? '#fffbeb' : `${t.geo}10`,
+                color: geoStatus === 'denied' ? t.fgMuted : geoStatus === 'unavailable' ? '#b45309' : t.geo,
+                fontSize: 13, fontWeight: 600,
+                cursor: geoStatus === 'loading' || geoStatus === 'denied' ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit', transition: 'all .15s',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+              </svg>
+              {geoStatus === 'loading' ? 'Localizando…'
+                : geoStatus === 'denied' ? 'Permissão negada'
+                : geoStatus === 'unavailable' ? 'Tentar novamente'
+                : 'Usar minha localização'}
+            </button>
+            {(geoStatus === 'denied' || geoStatus === 'unavailable') && (
+              <div style={{ fontSize: 11, color: geoStatus === 'unavailable' ? '#b45309' : t.fgMuted, lineHeight: 1.4, padding: '0 2px' }}>
+                {GEO_ERROR[geoStatus].label}
+                {geoStatus === 'unavailable' && (
+                  <span> — verifique em <strong>Configurações › Privacidade › Localização</strong></span>
+                )}
+              </div>
+            )}
+          </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div style={{
@@ -322,7 +347,7 @@ export default function PublicMapPage() {
 
   const [filters, setFilters] = useState<Filters>({ state: '', city: '', pinTypeId: '', search: '' })
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
-  const [geoStatus, setGeoStatus] = useState<'idle' | 'loading' | 'granted' | 'denied'>('idle')
+  const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle')
   const [radius, setRadius] = useState(50)
 
   useEffect(() => {
@@ -440,21 +465,26 @@ export default function PublicMapPage() {
   }, [filters, allPins, ready, userLocation, radius])
 
   const requestGeo = () => {
-    if (!navigator.geolocation) { setGeoStatus('denied'); return }
+    if (!navigator.geolocation) { setGeoStatus('unavailable'); return }
     setGeoStatus('loading')
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude })
         setGeoStatus('granted')
       },
-      () => setGeoStatus('denied'),
+      (err) => {
+        // code 1 = PERMISSION_DENIED (browser blocked, not retryable)
+        // code 2 = POSITION_UNAVAILABLE (OS-level permission missing, retryable after system settings)
+        // code 3 = TIMEOUT (transient, retryable)
+        setGeoStatus(err.code === 1 ? 'denied' : 'unavailable')
+      },
       { timeout: 10000, enableHighAccuracy: true },
     )
   }
 
-  const clearGeo = () => {
+  const clearGeo = (resetStatus = true) => {
     setUserLocation(null)
-    setGeoStatus('idle')
+    if (resetStatus) setGeoStatus('idle')
     userMarker.current?.remove()
     radiusCircle.current?.remove()
     userMarker.current = null
