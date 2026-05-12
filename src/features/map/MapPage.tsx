@@ -59,12 +59,10 @@ interface FilterPanelProps {
   states: string[]
   cities: string[]
   pinTypes: { id: string; name: string; color: string }[]
-  total: number
-  filtered: number
   onChange: (f: Filters) => void
 }
 
-function FilterPanel({ filters, states, cities, pinTypes, total, filtered, onChange }: FilterPanelProps) {
+function FilterPanel({ filters, states, cities, pinTypes, onChange }: FilterPanelProps) {
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch })
   const hasActive = filters.search || filters.state || filters.city || filters.pinTypeId || filters.visibility
 
@@ -82,13 +80,6 @@ function FilterPanel({ filters, states, cities, pinTypes, total, filtered, onCha
             Limpar
           </button>
         )}
-      </div>
-
-      {/* Count */}
-      <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--border)', fontSize: 12, color: 'var(--fg-muted)', flexShrink: 0 }}>
-        <span style={{ fontWeight: 600, color: 'var(--fg)' }}>{filtered}</span>
-        {filtered !== total && <span> de {total}</span>}
-        {' '}parceiro{filtered !== 1 ? 's' : ''}
       </div>
 
       {/* Fields */}
@@ -317,8 +308,6 @@ export default function MapPage() {
               states={states}
               cities={cities}
               pinTypes={pinTypes}
-              total={allPins.length}
-              filtered={filtered.length}
               onChange={setFilters}
             />
           </div>
