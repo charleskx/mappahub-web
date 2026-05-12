@@ -84,14 +84,14 @@ export default function DashboardPage() {
   const { data: importJobs } = useQuery({
     queryKey: ['importJobs'],
     queryFn: () => api.import.list(),
-    refetchInterval: 4000,
+    refetchInterval: 5000,
   })
   const hasActiveImport = importJobs?.some(j => j.status === 'queued' || j.status === 'processing') ?? false
 
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard', 'stats'],
     queryFn: () => api.dashboard.stats(),
-    refetchInterval: hasActiveImport ? 3000 : false,
+    refetchInterval: hasActiveImport ? 5000 : false,
   })
 
   // Sparkline: last 6 months of partner creation
@@ -217,7 +217,7 @@ export default function DashboardPage() {
               />
             }
           />
-          <div style={{ padding: '12px 24px 20px' }}>
+          <div key={geoTab} style={{ padding: '12px 24px 20px' }}>
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} style={{ padding: '8px 0', display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -226,9 +226,13 @@ export default function DashboardPage() {
                     <Skeleton h={12} w={32} />
                   </div>
                 ))
-              : geoTab !== 'tipo'
+              : geoTab === 'estado'
               ? geoList.length > 0
-                ? geoList.map((r) => <GeoRow key={`${geoTab}-${r.label}`} label={r.label} count={r.count} max={geoMax} />)
+                ? geoList.map((r) => <GeoRow key={r.label} label={r.label} count={r.count} max={geoMax} />)
+                : <div className="muted text-sm" style={{ padding: '16px 0', textAlign: 'center' }}>Sem dados geográficos ainda</div>
+              : geoTab === 'cidade'
+              ? geoList.length > 0
+                ? geoList.map((r) => <GeoRow key={r.label} label={r.label} count={r.count} max={geoMax} />)
                 : <div className="muted text-sm" style={{ padding: '16px 0', textAlign: 'center' }}>Sem dados geográficos ainda</div>
               : data?.geo.byPinType.length
               ? data.geo.byPinType.map((r) => <PinTypeRow key={r.id} name={r.name} color={r.color} count={r.count} max={pinTypeMax} />)
