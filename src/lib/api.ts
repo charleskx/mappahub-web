@@ -308,6 +308,10 @@ export const api = {
       const { data } = await axios.get(`${BASE_URL}/maps/public/${token}/localities`)
       return data
     },
+    async publicConfig(token: string): Promise<{ googleMapsApiKey: string | null }> {
+      const { data } = await axios.get(`${BASE_URL}/maps/public/${token}/config`)
+      return data
+    },
   },
 
   import: {
