@@ -64,14 +64,7 @@ export default function PublicMapsPage() {
     window.open(`/public-map/${token}`, '_blank', 'noopener,noreferrer')
   }
 
-  const handleNewMap = () => {
-    if (!publicMapEnabled) {
-      push({ title: 'Mapa público desabilitado', tone: 'error' })
-      navigate('/settings?tab=workspace')
-      return
-    }
-    setCreateOpen(true)
-  }
+  const handleNewMap = () => setCreateOpen(true)
 
   const showPromo = !publicMapEnabled && !maps?.length
 
@@ -84,7 +77,7 @@ export default function PublicMapsPage() {
         </div>
         {!showPromo && (
           <div className="page-actions">
-            <Button variant="primary" leftIcon={<I.plus size={14} />} onClick={handleNewMap}>
+            <Button variant="primary" leftIcon={<I.plus size={14} />} disabled={!publicMapEnabled} onClick={handleNewMap}>
               Novo mapa
             </Button>
           </div>
@@ -126,7 +119,7 @@ export default function PublicMapsPage() {
               icon={<I.globe size={28} />}
               title="Nenhum mapa público criado"
               desc="Crie um mapa para compartilhar seus parceiros publicamente"
-              action={<Button variant="primary" onClick={handleNewMap}>Criar mapa</Button>}
+              action={<Button variant="primary" disabled={!publicMapEnabled} onClick={handleNewMap}>Criar mapa</Button>}
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

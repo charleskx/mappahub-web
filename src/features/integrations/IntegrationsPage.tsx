@@ -75,14 +75,7 @@ export default function IntegrationsPage() {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
-  const handleNewEmbed = () => {
-    if (!publicMapEnabled) {
-      push({ title: 'Mapa público desabilitado', tone: 'error' })
-      navigate('/settings?tab=workspace')
-      return
-    }
-    setCreateOpen(true)
-  }
+  const handleNewEmbed = () => setCreateOpen(true)
 
   // Feature off + no maps → full promo screen
   const showPromo = !publicMapEnabled && !maps?.length
@@ -99,6 +92,7 @@ export default function IntegrationsPage() {
             <Button
               variant="primary"
               leftIcon={<I.plus size={14} />}
+              disabled={!publicMapEnabled}
               onClick={handleNewEmbed}
             >
               Novo embed
@@ -140,7 +134,7 @@ export default function IntegrationsPage() {
               icon={<I.code size={28} />}
               title="Nenhum embed criado"
               desc="Crie um embed para compartilhar o mapa de parceiros publicamente"
-              action={<Button variant="primary" onClick={handleNewEmbed}>Criar embed</Button>}
+              action={<Button variant="primary" disabled={!publicMapEnabled} onClick={handleNewEmbed}>Criar embed</Button>}
             />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
