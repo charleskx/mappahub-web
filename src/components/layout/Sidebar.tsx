@@ -117,7 +117,7 @@ export default function Sidebar({
             </svg>
           </div>
           <div className="sidebar-wordmark">
-            AtlaSync<span className="dot">.</span>
+            MappaHub<span className="dot">.</span>
           </div>
         </div>
 

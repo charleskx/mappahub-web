@@ -42,7 +42,7 @@ export default function LoginPage() {
       <div className="auth-form-wrap">
         <form className="auth-form" onSubmit={handleSubmit}>
           <h1 className="h1">Bem-vindo de volta</h1>
-          <div className="muted text-sm">Entre na sua conta AtlaSync</div>
+          <div className="muted text-sm">Entre na sua conta MappaHub</div>
           <div className="auth-form-fields">
             <Field label="E-mail">
               <Input

@@ -13,7 +13,7 @@ function buildSnippet(token: string, type: EmbedType): string {
   if (type === 'iframe') {
     return `<iframe src="${base}/public-map/${token}" width="100%" height="500" frameborder="0" allowfullscreen></iframe>`
   }
-  return `<div id="atlasync-map"></div>\n<script src="${base}/sdk/embed.js"></script>\n<script>\n  AtlaSyncMap.init({ token: "${token}", container: "atlasync-map" })\n</script>`
+  return `<div id="atlasync-map"></div>\n<script src="${base}/sdk/embed.js"></script>\n<script>\n  MappaHubMap.init({ token: "${token}", container: "atlasync-map" })\n</script>`
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────

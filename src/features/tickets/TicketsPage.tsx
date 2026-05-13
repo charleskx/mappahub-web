@@ -194,7 +194,7 @@ function TicketDetailModal({
                     {msg.body}
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--fg-subtle)', marginTop: 4, textAlign: msg.isStaff ? 'right' : 'left' }}>
-                    {msg.isStaff ? 'Suporte AtlaSync' : (msg.userName ?? '—')} · {relTime(msg.createdAt)}
+                    {msg.isStaff ? 'Suporte MappaHub' : (msg.userName ?? '—')} · {relTime(msg.createdAt)}
                   </div>
                 </div>
               </div>
@@ -254,7 +254,7 @@ export default function TicketsPage() {
           <div className="muted text-sm">
             {isSuperAdmin
               ? `${tickets.length} ticket${tickets.length !== 1 ? 's' : ''} no total`
-              : 'Fale com a equipe AtlaSync'}
+              : 'Fale com a equipe MappaHub'}
           </div>
         </div>
         {!isSuperAdmin && (

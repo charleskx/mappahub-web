@@ -518,7 +518,7 @@ export default function PublicMapPage() {
               <path d="M16 5C11.582 5 8 8.582 8 13c0 6.222 8 14 8 14s8-7.778 8-14c0-4.418-3.582-8-8-8z" fill="white"/>
               <circle cx="16" cy="13" r="3.2" fill="#4f46e5"/>
             </svg>
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: '-0.2px' }}>AtlaSync</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.45)', letterSpacing: '-0.2px' }}>MappaHub</span>
           </a>
         </div>
 
@@ -556,7 +556,7 @@ export default function PublicMapPage() {
               color: 'rgba(255,255,255,0.5)', fontSize: 13,
               textDecoration: 'none', letterSpacing: '-0.1px',
             }}>
-              Conheça o AtlaSync →
+              Conheça o MappaHub →
             </a>
           </div>
         </div>
@@ -612,7 +612,7 @@ export default function PublicMapPage() {
           href="https://atlasync.com"
           target="_blank"
           rel="noopener noreferrer"
-          title="Powered by AtlaSync"
+          title="Powered by MappaHub"
           style={{ display: 'flex', alignItems: 'center', gap: 7, textDecoration: 'none', flexShrink: 0 }}
         >
           <div style={{ width: 26, height: 26, borderRadius: 7, background: t.accent, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
@@ -622,7 +622,7 @@ export default function PublicMapPage() {
           </div>
           {!isMobile && (
             <span style={{ fontSize: 11, color: t.fgMuted, letterSpacing: '0.01em' }}>
-              Powered by <span style={{ fontWeight: 700, color: t.fg }}>AtlaSync</span>
+              Powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
             </span>
           )}
         </a>

@@ -104,7 +104,7 @@ export default function BillingPage() {
                     <div className="muted text-sm" style={{ marginTop: 8 }}>
                       {subscription?.trialEndsAt
                         ? `Seu trial expira em ${new Date(subscription.trialEndsAt).toLocaleDateString('pt-BR')}.`
-                        : 'Assine um plano para continuar usando o AtlaSync.'}
+                        : 'Assine um plano para continuar usando o MappaHub.'}
                     </div>
                   </div>
                 )}

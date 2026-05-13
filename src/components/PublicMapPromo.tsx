@@ -65,7 +65,7 @@ export function PublicMapPromo({ onEnable }: Props) {
 
           {/* Footer badge */}
           <rect x="18" y="168" width="66" height="16" rx="4" fill="#4f46e5" opacity=".12"/>
-          <text x="51" y="179.5" fontSize="7.5" fill="#4f46e5" textAnchor="middle" fontWeight="600" fontFamily="sans-serif">Powered by AtlaSync</text>
+          <text x="51" y="179.5" fontSize="7.5" fill="#4f46e5" textAnchor="middle" fontWeight="600" fontFamily="sans-serif">Powered by MappaHub</text>
         </svg>
       </div>
 

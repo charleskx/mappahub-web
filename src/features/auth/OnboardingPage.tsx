@@ -5,7 +5,7 @@ import { Button, Card, Progress, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
 
 const STEPS = [
-  { title: 'Bem-vindo ao AtlaSync', desc: 'Vamos configurar tudo em 3 minutos.' },
+  { title: 'Bem-vindo ao MappaHub', desc: 'Vamos configurar tudo em 3 minutos.' },
   { title: 'Importe seus parceiros', desc: 'Faça upload de uma planilha agora ou depois.' },
   { title: 'Tudo pronto!', desc: 'Seu workspace está configurado.' },
 ]
@@ -40,7 +40,7 @@ export default function OnboardingPage() {
             <circle cx="12" cy="9" r="2.5" fill="currentColor" />
           </svg>
         </div>
-        <div className="sidebar-wordmark">AtlaSync<span className="dot">.</span></div>
+        <div className="sidebar-wordmark">MappaHub<span className="dot">.</span></div>
         <div style={{ flex: 1 }} />
         <Button variant="ghost" size="sm" onClick={finish}>Pular</Button>
       </header>
