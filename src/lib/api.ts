@@ -15,6 +15,9 @@ import type {
   Subscription,
   Tenant,
   TenantSettings,
+  Ticket,
+  TicketDetail,
+  TicketMessage,
   User,
 } from '../types'
 
@@ -491,6 +494,29 @@ export const api = {
     },
     async metrics(): Promise<unknown> {
       const { data } = await http.get('/admin/metrics')
+      return data
+    },
+  },
+
+  tickets: {
+    async list(): Promise<Ticket[]> {
+      const { data } = await http.get<Ticket[]>('/tickets')
+      return data
+    },
+    async create(title: string, body: string): Promise<Ticket> {
+      const { data } = await http.post<Ticket>('/tickets', { title, body })
+      return data
+    },
+    async getDetail(id: string): Promise<TicketDetail> {
+      const { data } = await http.get<TicketDetail>(`/tickets/${id}`)
+      return data
+    },
+    async reply(id: string, body: string): Promise<TicketMessage> {
+      const { data } = await http.post<TicketMessage>(`/tickets/${id}/messages`, { body })
+      return data
+    },
+    async updateStatus(id: string, status: string): Promise<Ticket> {
+      const { data } = await http.patch<Ticket>(`/tickets/${id}/status`, { status })
       return data
     },
   },

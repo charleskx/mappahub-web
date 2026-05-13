@@ -6,7 +6,7 @@ import { I } from '../icons'
 
 type Notif = {
   id: string
-  type: 'import_done' | 'import_failed' | 'geocoding_failures' | 'trial_expiring'
+  type: 'import_done' | 'import_failed' | 'geocoding_failures' | 'trial_expiring' | 'ticket_reply' | 'new_ticket'
   title: string
   desc: string
   createdAt: string
@@ -28,12 +28,14 @@ function notifIcon(type: Notif['type']) {
   if (type === 'import_failed') return <I.alert size={14} style={{ color: 'var(--danger)' }} />
   if (type === 'geocoding_failures') return <I.pin size={14} style={{ color: 'var(--warning)' }} />
   if (type === 'trial_expiring') return <I.zap size={14} style={{ color: 'var(--warning)' }} />
+  if (type === 'ticket_reply' || type === 'new_ticket') return <I.ticket size={14} style={{ color: 'var(--accent)' }} />
   return <I.bell size={14} />
 }
 
 function notifBg(type: Notif['type']) {
   if (type === 'import_done') return 'var(--success-soft, color-mix(in srgb, var(--success) 12%, transparent))'
   if (type === 'import_failed') return 'color-mix(in srgb, var(--danger) 12%, transparent)'
+  if (type === 'ticket_reply' || type === 'new_ticket') return 'color-mix(in srgb, var(--accent) 12%, transparent)'
   return 'var(--bg-subtle)'
 }
 
@@ -42,6 +44,7 @@ function notifColor(type: Notif['type']) {
   if (type === 'import_failed') return 'var(--danger)'
   if (type === 'geocoding_failures') return 'var(--warning)'
   if (type === 'trial_expiring') return 'var(--warning)'
+  if (type === 'ticket_reply' || type === 'new_ticket') return 'var(--accent)'
   return 'var(--fg-muted)'
 }
 
@@ -96,6 +99,7 @@ export default function NotificationsBell() {
     if (n.type === 'import_done' || n.type === 'import_failed') navigate('/import')
     else if (n.type === 'geocoding_failures') navigate('/partners')
     else if (n.type === 'trial_expiring') navigate('/billing')
+    else if (n.type === 'ticket_reply' || n.type === 'new_ticket') navigate('/support')
   }
 
   return (

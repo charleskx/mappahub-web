@@ -578,4 +578,11 @@ export const I: Record<string, IconComponent> = {
     />
   ),
   undo: (p) => <Icon {...p} d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 010 11H11" />,
+  send: (p) => <Icon {...p} d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />,
+  chevronRight: (p) => <Icon {...p} d="M9 18l6-6-6-6" />,
+  ticket: (p) => (
+    <Icon {...p}>
+      <path d="M15 5v2M15 11v2M15 17v2M5 5h14a2 2 0 012 2v3a2 2 0 010 4v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 010-4V7a2 2 0 012-2z" />
+    </Icon>
+  ),
 }

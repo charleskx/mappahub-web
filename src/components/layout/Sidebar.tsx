@@ -38,6 +38,10 @@ const adminItems: NavItem[] = [
   { id: 'settings', label: 'Configurações', icon: <I.settings /> },
 ]
 
+const supportItems: NavItem[] = [
+  { id: 'support', label: 'Suporte', icon: <I.ticket /> },
+]
+
 function NavGroup({
   label,
   items,
@@ -120,6 +124,7 @@ export default function Sidebar({
           <NavGroup label="Visão geral" items={mainItems} active={active} onNav={handleNav} />
           <NavGroup label="Dados" items={dataItems} active={active} onNav={handleNav} />
           <NavGroup label="Workspace" items={adminItems} active={active} onNav={handleNav} />
+          <NavGroup label="Ajuda" items={supportItems} active={active} onNav={handleNav} />
           {user?.role === 'super_admin' && (
             <>
               <div className="sidebar-section-label">Plataforma</div>

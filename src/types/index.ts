@@ -157,6 +157,31 @@ export interface ListPartnersInput {
   geocodeStatus?: 'pending' | 'done' | 'failed'
 }
 
+export interface Ticket {
+  id: string
+  tenantId: string
+  title: string
+  body: string
+  status: 'open' | 'in_progress' | 'resolved'
+  createdAt: string
+  updatedAt: string
+  userName?: string | null
+  userEmail?: string | null
+}
+
+export interface TicketMessage {
+  id: string
+  body: string
+  isStaff: boolean
+  createdAt: string
+  userName?: string | null
+  userId: string
+}
+
+export interface TicketDetail extends Ticket {
+  messages: TicketMessage[]
+}
+
 export interface TenantSettings {
   defaultMapZoom?: number | null
   defaultMapLat?: number | null
