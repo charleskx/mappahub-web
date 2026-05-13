@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/auth'
 import { Button } from '../ui'
 import { I } from '../icons'
@@ -16,12 +16,17 @@ const STATUS_CONFIG: Record<string, { title: string; desc: string; tone: string 
   },
 }
 
+const ALLOWED_PATHS = ['/billing', '/support']
+
 export default function SubscriptionWall({ children }: { children: React.ReactNode }) {
   const { subscriptionStatus } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   const isBlocked = subscriptionStatus === 'canceled' || subscriptionStatus === 'past_due'
-  if (!isBlocked) return <>{children}</>
+
+  // Allow billing and support pages to render even with blocked subscription
+  if (!isBlocked || ALLOWED_PATHS.some(p => pathname.startsWith(p))) return <>{children}</>
 
   const config = STATUS_CONFIG[subscriptionStatus!]
 
