@@ -482,6 +482,13 @@ export const api = {
     async rollbackImport(tenantId: string, jobId: string): Promise<void> {
       await http.post(`/admin/tenants/${tenantId}/imports/${jobId}/rollback`)
     },
+    async tenantUsers(tenantId: string): Promise<{ id: string; name: string; email: string; role: string; totpEnabled: boolean; createdAt: string }[]> {
+      const { data } = await http.get(`/admin/tenants/${tenantId}/users`)
+      return data
+    },
+    async disable2fa(tenantId: string, userId: string): Promise<void> {
+      await http.delete(`/admin/tenants/${tenantId}/users/${userId}/2fa`)
+    },
     async metrics(): Promise<unknown> {
       const { data } = await http.get('/admin/metrics')
       return data

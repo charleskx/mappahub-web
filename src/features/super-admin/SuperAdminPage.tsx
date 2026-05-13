@@ -195,6 +195,119 @@ function TenantImportsModal({
   )
 }
 
+type TenantUser = { id: string; name: string; email: string; role: string; totpEnabled: boolean; createdAt: string }
+
+function TenantUsersModal({
+  tenantId,
+  tenantName,
+  open,
+  onClose,
+}: {
+  tenantId: string
+  tenantName: string
+  open: boolean
+  onClose: () => void
+}) {
+  const qc = useQueryClient()
+  const { push } = useToast()
+  const [confirmUser, setConfirmUser] = useState<TenantUser | null>(null)
+
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['admin', 'tenants', tenantId, 'users'],
+    queryFn: () => api.admin.tenantUsers(tenantId),
+    enabled: open,
+  })
+
+  const disable2faMutation = useMutation({
+    mutationFn: (userId: string) => api.admin.disable2fa(tenantId, userId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'tenants', tenantId, 'users'] })
+      push({ title: '2FA desativado com sucesso', tone: 'success' })
+      setConfirmUser(null)
+    },
+    onError: () => push({ title: 'Erro ao desativar 2FA', tone: 'error' }),
+  })
+
+  const ROLE_LABELS: Record<string, string> = {
+    owner: 'Proprietário',
+    admin: 'Administrador',
+    employee: 'Colaborador',
+  }
+
+  return (
+    <>
+      <Modal open={open} onClose={onClose} title={`Usuários — ${tenantName}`} size="lg">
+        {isLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[...Array(3)].map((_, i) => <Skeleton key={i} h={44} />)}
+          </div>
+        ) : users.length === 0 ? (
+          <div className="muted text-sm" style={{ textAlign: 'center', padding: 32 }}>Nenhum usuário encontrado</div>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Usuário</th>
+                <th>Cargo</th>
+                <th>2FA</th>
+                <th style={{ width: 80 }} />
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(u => (
+                <tr key={u.id}>
+                  <td>
+                    <div style={{ fontWeight: 500 }}>{u.name}</div>
+                    <div className="muted text-sm">{u.email}</div>
+                  </td>
+                  <td><Badge>{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
+                  <td>
+                    <Badge tone={u.totpEnabled ? 'success' : 'default'} dot>
+                      {u.totpEnabled ? 'Ativo' : 'Inativo'}
+                    </Badge>
+                  </td>
+                  <td>
+                    {u.totpEnabled && (
+                      <button
+                        className="btn btn-ghost"
+                        style={{ fontSize: 12, color: 'var(--danger)', padding: '3px 8px', height: 28 }}
+                        onClick={() => setConfirmUser(u)}
+                      >
+                        Remover 2FA
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Modal>
+
+      <Modal
+        open={!!confirmUser}
+        onClose={() => setConfirmUser(null)}
+        title="Remover autenticação de dois fatores"
+      >
+        <p style={{ margin: '0 0 16px', lineHeight: 1.6 }}>
+          Tem certeza que deseja remover o 2FA de <strong>{confirmUser?.name}</strong>?
+          O usuário precisará reconfigurar a autenticação de dois fatores caso queira reativá-la.
+        </p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <Button variant="ghost" onClick={() => setConfirmUser(null)}>Cancelar</Button>
+          <Button
+            variant="danger"
+            disabled={disable2faMutation.isPending}
+            onClick={() => confirmUser && disable2faMutation.mutate(confirmUser.id)}
+          >
+            {disable2faMutation.isPending ? 'Removendo…' : 'Sim, remover 2FA'}
+          </Button>
+        </div>
+      </Modal>
+    </>
+  )
+}
+
 export default function SuperAdminPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -202,6 +315,7 @@ export default function SuperAdminPage() {
   const { push } = useToast()
   const [search, setSearch] = useState('')
   const [importsModal, setImportsModal] = useState<{ id: string; name: string } | null>(null)
+  const [usersModal, setUsersModal] = useState<{ id: string; name: string } | null>(null)
 
   const { data: tenants, isLoading } = useQuery({
     queryKey: ['admin', 'tenants'],
@@ -313,6 +427,13 @@ export default function SuperAdminPage() {
                   <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
                     <button
                       className="icon-btn"
+                      title="Usuários"
+                      onClick={() => setUsersModal({ id: t.id, name: t.name })}
+                    >
+                      <I.users size={14} />
+                    </button>
+                    <button
+                      className="icon-btn"
                       title="Ver imports"
                       onClick={() => setImportsModal({ id: t.id, name: t.name })}
                     >
@@ -350,6 +471,15 @@ export default function SuperAdminPage() {
           tenantName={importsModal.name}
           open={!!importsModal}
           onClose={() => setImportsModal(null)}
+        />
+      )}
+
+      {usersModal && (
+        <TenantUsersModal
+          tenantId={usersModal.id}
+          tenantName={usersModal.name}
+          open={!!usersModal}
+          onClose={() => setUsersModal(null)}
         />
       )}
     </div>
