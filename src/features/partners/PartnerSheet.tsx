@@ -3,8 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import type { Partner, PartnerColumn } from '../../types'
 import { Button, Field, Input, Select, Sheet, useToast } from '../../components/ui'
-import { I } from '../../components/icons'
-import { useAuth } from '../../context/auth'
 
 interface PartnerSheetProps {
   open: boolean
@@ -23,8 +21,6 @@ const BLANK_BASE = {
 export default function PartnerSheet({ open, onClose, partner }: PartnerSheetProps) {
   const qc = useQueryClient()
   const { push } = useToast()
-  const { user } = useAuth()
-  const canManageColumns = user?.role === 'owner' || user?.role === 'admin' || user?.role === 'super_admin'
   const [form, setForm] = useState(BLANK_BASE)
   const [dynamicValues, setDynamicValues] = useState<Record<string, string>>({})
 
@@ -82,12 +78,6 @@ export default function PartnerSheet({ open, onClose, partner }: PartnerSheetPro
 
   const setDyn = (key: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setDynamicValues(prev => ({ ...prev, [key]: e.target.value }))
-
-  const toggleReadonly = useMutation({
-    mutationFn: (col: PartnerColumn) => api.partners.updateColumn(col.id, { readonly: !col.readonly }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['partnerColumns'] }),
-    onError: () => push({ title: 'Erro ao alterar campo', tone: 'error' }),
-  })
 
   const mutation = useMutation({
     mutationFn: () => {
@@ -176,36 +166,11 @@ export default function PartnerSheet({ open, onClose, partner }: PartnerSheetPro
             <SectionLabel>Campos personalizados</SectionLabel>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               {columns.map((col) => (
-                <Field
-                  key={col.key}
-                  label={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      {col.label}
-                      {canManageColumns && (
-                        <button
-                          type="button"
-                          title={col.readonly ? 'Campo bloqueado pelo sistema — clique para desbloquear' : 'Clique para bloquear este campo'}
-                          onClick={() => toggleReadonly.mutate(col)}
-                          style={{
-                            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
-                            color: col.readonly ? 'var(--fg-muted)' : 'var(--fg-subtle)',
-                            display: 'flex', alignItems: 'center',
-                          }}
-                        >
-                          <I.lock size={11} />
-                        </button>
-                      )}
-                      {col.readonly && !canManageColumns && (
-                        <I.lock size={11} style={{ color: 'var(--fg-subtle)' }} />
-                      )}
-                    </div>
-                  }
-                >
+                <Field key={col.key} label={col.label}>
                   <Input
                     value={dynamicValues[col.key] ?? ''}
                     onChange={setDyn(col.key)}
                     placeholder={col.label}
-                    disabled={col.readonly}
                   />
                 </Field>
               ))}
