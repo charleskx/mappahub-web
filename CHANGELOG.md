@@ -9,6 +9,12 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-05-14
+
+### Corrigido
+- Remove unused function and enforce no-unused lint rules
+
+
 ## [0.0.2] - 2026-05-14
 
 - Melhorias e correções internas
