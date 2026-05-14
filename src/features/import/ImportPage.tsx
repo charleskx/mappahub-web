@@ -4,6 +4,23 @@ import { api } from '../../lib/api'
 import { Badge, Button, Card, CardHeader, Empty, Modal, Progress, Select, Skeleton, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
 
+function downloadTemplate() {
+  const rows = [
+    ['nome', 'endereço', 'tipo', 'visibilidade', 'telefone', 'site'],
+    ['Distribuidora Norte', 'Av. Paulista, 1000, São Paulo - SP', 'Distribuidor', 'public', '(11) 91234-5678', 'https://exemplo.com.br'],
+    ['Loja Centro', 'Rua XV de Novembro, 200, Curitiba - PR', 'Loja', 'public', '(41) 98765-4321', ''],
+    ['Representante Sul', 'Av. Borges de Medeiros, 500, Porto Alegre - RS', 'Representante', 'internal', '', ''],
+  ]
+  const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n')
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'modelo-importacao.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 function formatBytes(bytes: number | null | undefined) {
   if (bytes == null) return '—'
   if (bytes < 1024) return `${bytes} B`
@@ -115,6 +132,9 @@ export default function ImportPage() {
           <div className="muted text-sm">Importe parceiros em massa a partir de arquivos Excel ou CSV</div>
         </div>
         <div className="page-actions">
+          <Button variant="outline" leftIcon={<I.download size={14} />} onClick={downloadTemplate}>
+            Baixar modelo
+          </Button>
           <Select value={mode} onChange={(e) => setMode(e.target.value as 'full' | 'incremental')} style={{ width: 160 }}>
             <option value="full">Substituição total</option>
             <option value="incremental">Incremental</option>
