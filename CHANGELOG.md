@@ -9,6 +9,12 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [0.0.4] - 2026-05-14
+
+### Corrigido
+- Add vercel.json SPA rewrite for client-side routing
+
+
 ## [0.0.3] - 2026-05-14
 
 ### Corrigido
