@@ -31,10 +31,10 @@ const PLANS = [
   {
     key: 'annual',
     label: 'Anual',
-    price: 'R$ 253,90',
+    price: 'R$ 268,16',
     period: '/mês',
-    priceDetail: 'R$ 3.046,80 cobrado anualmente',
-    highlight: 'Economize R$ 528,00 por ano',
+    priceDetail: 'R$ 3.217,90 cobrado anualmente',
+    highlight: 'Economize R$ 356,90 por ano',
     highlightTone: 'success' as const,
     note: null,
     badge: 'Recomendado',
@@ -42,7 +42,7 @@ const PLANS = [
       'Tudo do plano Mensal',
       'Suporte prioritário',
       'SLA de resposta em até 4h',
-      'Onboarding dedicado',
+      'Prioridade no Geocoding',
     ],
   },
 ]
