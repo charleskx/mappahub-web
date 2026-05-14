@@ -1,10 +1,11 @@
+import axios from 'axios'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
-import { Badge, Skeleton } from '../../components/ui'
+import { Badge, Button, Input, Skeleton, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
 import type { GeocodingLog } from '../../types'
+
 
 function relTime(iso: string) {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000
@@ -26,9 +27,50 @@ const STATUS_TONE: Record<string, 'danger' | 'warning' | 'success'> = {
   success: 'success',
 }
 
+type GeoPreview = { lat: number; lng: number; city?: string; state?: string }
+
 function LogRow({ log }: { log: GeocodingLog }) {
   const [expanded, setExpanded] = useState(false)
-  const navigate = useNavigate()
+  const [newAddress, setNewAddress] = useState('')
+  const [preview, setPreview] = useState<GeoPreview | null>(null)
+  const [validating, setValidating] = useState(false)
+  const [applying, setApplying] = useState(false)
+  const [fieldError, setFieldError] = useState('')
+  const { push } = useToast()
+  const qc = useQueryClient()
+
+  const handleValidate = async () => {
+    if (!newAddress.trim()) return
+    setFieldError('')
+    setPreview(null)
+    setValidating(true)
+    try {
+      const result = await api.geocodingLogs.validateAddress(log.partnerId, newAddress)
+      setPreview(result)
+    } catch (err) {
+      const msg = axios.isAxiosError(err)
+        ? (err.response?.data?.message ?? 'Endereço não encontrado')
+        : 'Endereço não encontrado'
+      setFieldError(msg)
+    } finally {
+      setValidating(false)
+    }
+  }
+
+  const handleApply = async () => {
+    if (!preview) return
+    setApplying(true)
+    try {
+      await api.geocodingLogs.applyAddress(log.partnerId, newAddress)
+      push({ title: 'Endereço atualizado', desc: `${log.partnerName} foi geocodificado com sucesso.`, tone: 'success' })
+      qc.invalidateQueries({ queryKey: ['geocoding-logs'] })
+      qc.invalidateQueries({ queryKey: ['geocodingLogs'] })
+    } catch {
+      push({ title: 'Erro ao aplicar endereço', tone: 'error' })
+    } finally {
+      setApplying(false)
+    }
+  }
 
   return (
     <div style={{
@@ -127,16 +169,49 @@ function LogRow({ log }: { log: GeocodingLog }) {
             <Detail label="Status geocoding" value={log.geocodeStatus ?? '—'} />
           </div>
 
-          {/* Actions */}
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button
-              className="btn btn-ghost"
-              style={{ fontSize: 12, height: 30, padding: '0 12px' }}
-              onClick={e => { e.stopPropagation(); navigate(`/partners?edit=${log.partnerId}`) }}
-            >
-              <I.edit size={13} style={{ marginRight: 5 }} />
-              Editar endereço
-            </button>
+          {/* Fix address */}
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Corrigir endereço
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ flex: 1 }}>
+                <Input
+                  placeholder="Digite o endereço, CEP ou ponto de referência…"
+                  value={newAddress}
+                  onChange={e => { setNewAddress(e.target.value); setPreview(null); setFieldError('') }}
+                  onKeyDown={e => e.key === 'Enter' && handleValidate()}
+                />
+                {fieldError && (
+                  <div style={{ fontSize: 12, color: 'var(--danger)', marginTop: 4 }}>{fieldError}</div>
+                )}
+              </div>
+              <Button variant="outline" size="sm" onClick={handleValidate} disabled={validating || !newAddress.trim()}>
+                {validating ? 'Validando…' : 'Validar'}
+              </Button>
+            </div>
+
+            {preview && (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                padding: '10px 14px', borderRadius: 8,
+                background: 'color-mix(in srgb, var(--success) 8%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--success) 25%, transparent)',
+              }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <I.check size={14} style={{ color: 'var(--success)', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--fg)' }}>Endereço localizado</div>
+                    <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginTop: 2 }}>
+                      {[preview.city, preview.state].filter(Boolean).join(', ')} · {preview.lat.toFixed(5)}, {preview.lng.toFixed(5)}
+                    </div>
+                  </div>
+                </div>
+                <Button variant="primary" size="sm" onClick={handleApply} disabled={applying}>
+                  {applying ? 'Aplicando…' : 'Confirmar'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -546,5 +546,12 @@ export const api = {
       const { data } = await http.get<GeocodingLog[]>(`/geocoding-logs/partner/${partnerId}`)
       return data
     },
+    async validateAddress(partnerId: string, address: string): Promise<{ valid: true; lat: number; lng: number; city?: string; state?: string }> {
+      const { data } = await http.post(`/geocoding-logs/fix-address/${partnerId}`, { address })
+      return data
+    },
+    async applyAddress(partnerId: string, address: string): Promise<void> {
+      await http.post(`/geocoding-logs/fix-address/${partnerId}`, { address, confirm: true })
+    },
   },
 }
