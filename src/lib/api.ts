@@ -127,6 +127,10 @@ export const api = {
       await http.get(`/auth/verify`, { params: { token } })
     },
 
+    async resendVerification(email: string) {
+      await http.post('/auth/resend-verification', { email })
+    },
+
     async me(): Promise<User & { subscriptionStatus: string | null }> {
       const { data } = await http.get<Record<string, unknown>>('/auth/me')
       return {

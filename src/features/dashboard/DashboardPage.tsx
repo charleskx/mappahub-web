@@ -86,7 +86,7 @@ export default function DashboardPage() {
     queryFn: () => api.import.list(),
     refetchInterval: 5000,
   })
-  const hasActiveImport = importJobs?.some(j => j.status === 'queued' || j.status === 'processing') ?? false
+  const hasActiveImport = importJobs?.some(j => j.status === 'pending' || j.status === 'processing') ?? false
 
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard', 'stats'],
@@ -222,7 +222,7 @@ export default function DashboardPage() {
               ? Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} style={{ padding: '8px 0', display: 'flex', gap: 12, alignItems: 'center' }}>
                     <Skeleton h={12} w={40} />
-                    <Skeleton h={7} style={{ flex: 1 }} />
+                    <div style={{ flex: 1 }}><Skeleton h={7} /></div>
                     <Skeleton h={12} w={32} />
                   </div>
                 ))

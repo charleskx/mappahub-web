@@ -262,7 +262,7 @@ function TenantUsersModal({
                   </td>
                   <td><Badge>{ROLE_LABELS[u.role] ?? u.role}</Badge></td>
                   <td>
-                    <Badge tone={u.totpEnabled ? 'success' : 'default'} dot>
+                    <Badge tone={u.totpEnabled ? 'success' : undefined} dot>
                       {u.totpEnabled ? 'Ativo' : 'Inativo'}
                     </Badge>
                   </td>
@@ -313,7 +313,7 @@ export default function SuperAdminPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const { push } = useToast()
-  const [activeTab, setActiveTab] = useState<'tenants'>('tenants')
+  const [activeTab] = useState<'tenants'>('tenants')
   const [search, setSearch] = useState('')
   const [importsModal, setImportsModal] = useState<{ id: string; name: string } | null>(null)
   const [usersModal, setUsersModal] = useState<{ id: string; name: string } | null>(null)

@@ -161,7 +161,7 @@ export default function Sidebar({
             <div className="tenant-avatar">{initials}</div>
             <div className="sidebar-tenant-text">
               <div className="name">{user?.name ?? 'Usuário'}</div>
-              <div className="role">{{ owner: 'Proprietário', admin: 'Administrador', employee: 'Colaborador', super_admin: 'Super Admin' }[user?.role ?? ''] ?? user?.role}</div>
+              <div className="role">{({ owner: 'Proprietário', admin: 'Administrador', employee: 'Colaborador', super_admin: 'Super Admin' } as Record<string, string>)[user?.role ?? ''] ?? user?.role}</div>
             </div>
           </div>
         </div>

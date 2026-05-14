@@ -12,9 +12,9 @@ const STATUS_LABEL: Record<string, string> = {
   in_progress: 'Em andamento',
   resolved: 'Resolvido',
 }
-const STATUS_TONE: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
+const STATUS_TONE: Record<string, 'success' | 'warning' | 'danger' | undefined> = {
   open: 'warning',
-  in_progress: 'default',
+  in_progress: undefined,
   resolved: 'success',
 }
 
