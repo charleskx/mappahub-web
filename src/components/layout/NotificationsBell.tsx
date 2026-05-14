@@ -123,8 +123,8 @@ export default function NotificationsBell() {
 
       {open && (
         <div style={{
-          position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-          width: 360, maxHeight: 480, overflowY: 'auto',
+          position: 'fixed', top: 64, right: 12,
+          width: 'min(360px, calc(100vw - 24px))', maxHeight: 480, overflowY: 'auto',
           background: 'var(--bg-elev)',
           border: '1px solid var(--border)',
           borderRadius: 12,
