@@ -9,6 +9,10 @@ import App from './App'
 
 initSentry()
 
+window.addEventListener('vite:preloadError', () => {
+  window.location.reload()
+})
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
