@@ -177,7 +177,7 @@ function LogRow({ log }: { log: GeocodingLog }) {
             <div style={{ display: 'flex', gap: 8 }}>
               <div style={{ flex: 1 }}>
                 <Input
-                  placeholder="Digite o endereço, CEP ou ponto de referência…"
+                  placeholder="Ex: Rua das Flores, 123, Bairro, Cidade, Estado"
                   value={newAddress}
                   onChange={e => { setNewAddress(e.target.value); setPreview(null); setFieldError('') }}
                   onKeyDown={e => e.key === 'Enter' && handleValidate()}
