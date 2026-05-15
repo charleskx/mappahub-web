@@ -161,7 +161,7 @@ function InfoPopup({ pin, distance, onClose, isMobile }: InfoPopupProps) {
             style={{
               width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               padding: '7px 12px', borderRadius: 8, border: `1px solid ${t.border}`,
-              background: t.bgElev ?? t.bg, color: t.fg, cursor: 'pointer', fontSize: 13, fontWeight: 600,
+              background: t.bgSubtle, color: t.fg, cursor: 'pointer', fontSize: 13, fontWeight: 600,
             }}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
