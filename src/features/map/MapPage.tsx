@@ -295,6 +295,7 @@ function FilterPanel({ filters, states, cities, pinTypes, onChange }: FilterPane
 export default function MapPage() {
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: MAPS_API_KEY, id: 'google-map-script' })
   const mapRef = useRef<google.maps.Map | null>(null)
+  const hasInitialFit = useRef(false)
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [filters, setFilters] = useState<Filters>({ search: '', state: '', city: '', pinTypeId: '', visibility: '' })
@@ -342,12 +343,18 @@ export default function MapPage() {
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map
-    fitBounds(validPins)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fitBounds])
+  }, [])
 
-  // Re-fit only when filters change, not when a pin is clicked
+  // Initial fit — runs once when pins first load
   useEffect(() => {
+    if (hasInitialFit.current || validPins.length === 0) return
+    fitBounds(validPins)
+    hasInitialFit.current = true
+  }, [validPins, fitBounds])
+
+  // Re-fit when filters change (after initial fit)
+  useEffect(() => {
+    if (!hasInitialFit.current) return
     fitBounds(validPins)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters])

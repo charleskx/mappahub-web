@@ -379,6 +379,7 @@ export default function PublicMapPage() {
   const { token } = useParams<{ token: string }>()
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: MAPS_API_KEY, id: 'google-map-script' })
   const mapRef = useRef<google.maps.Map | null>(null)
+  const hasInitialFit = useRef(false)
 
   const [allPins, setAllPins] = useState<MapPin[]>([])
   const [pinTypes, setPinTypes] = useState<{ id: string; name: string; color: string }[]>([])
@@ -459,13 +460,18 @@ export default function PublicMapPage() {
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map
-    fitBounds(validPins)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fitBounds])
+  }, [])
 
-  // Re-fit when filters change; skip if user location is active (radius controls the view)
+  // Initial fit — runs once when pins first load
   useEffect(() => {
-    if (userLocation) return
+    if (hasInitialFit.current || validPins.length === 0 || userLocation) return
+    fitBounds(validPins)
+    hasInitialFit.current = true
+  }, [validPins, fitBounds, userLocation])
+
+  // Re-fit when filters change (after initial fit), skip if user location controls view
+  useEffect(() => {
+    if (!hasInitialFit.current || userLocation) return
     fitBounds(validPins)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters])
