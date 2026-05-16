@@ -71,6 +71,8 @@ export default function NotificationsBell() {
     'geocoding-updated': () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] })
       queryClient.invalidateQueries({ queryKey: ['geocoding-logs'] })
+      queryClient.invalidateQueries({ queryKey: ['partners'] })
+      queryClient.invalidateQueries({ queryKey: ['partnerPins'] })
     },
   })
 
