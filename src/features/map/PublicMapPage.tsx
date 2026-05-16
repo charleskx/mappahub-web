@@ -69,7 +69,6 @@ interface InfoPopupProps {
   pin: MapPin
   distance?: number
   onClose: () => void
-  isMobile?: boolean
 }
 
 const NAV_APPS = [
@@ -93,7 +92,7 @@ const NAV_APPS = [
   },
 ]
 
-function InfoPopup({ pin, distance, onClose, isMobile }: InfoPopupProps) {
+function InfoPopup({ pin, distance, onClose }: InfoPopupProps) {
   const [navOpen, setNavOpen] = useState(false)
   const addressLines = [pin.address, [pin.city, pin.state].filter(Boolean).join(' — ')].filter(Boolean)
   const hasCoords = pin.lat != null && pin.lng != null
@@ -750,7 +749,7 @@ export default function PublicMapPage() {
               <div style={{ fontSize: 13, color: t.fgMuted }}>Carregando mapa…</div>
             </div>
           )}
-          {selectedPin && <InfoPopup pin={selectedPin} distance={selectedPinDist} isMobile={isMobile} onClose={() => { setSelectedPin(null); setSelectedPinDist(undefined) }} />}
+          {selectedPin && <InfoPopup pin={selectedPin} distance={selectedPinDist} onClose={() => { setSelectedPin(null); setSelectedPinDist(undefined) }} />}
         </div>
       </div>
 
