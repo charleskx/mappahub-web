@@ -413,15 +413,13 @@ export default function MapPage() {
               onIdle={onMapIdle}
             >
               {mapReady && <MarkerClusterer
-                options={{
-                  zoomOnClick: false,
-                  onClick: (cluster) => {
-                    const map = mapRef.current
-                    if (!map) return
-                    map.setZoom(Math.min((map.getZoom() ?? 5) + 3, 16))
-                    const center = cluster.getCenter()
-                    if (center) map.panTo(center)
-                  },
+                options={{ zoomOnClick: false }}
+                onClick={(cluster) => {
+                  const map = mapRef.current
+                  if (!map) return
+                  map.setZoom(Math.min((map.getZoom() ?? 5) + 3, 16))
+                  const center = cluster.getCenter()
+                  if (center) map.panTo(center)
                 }}
               >
                 {(clusterer) => (
