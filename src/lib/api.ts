@@ -178,7 +178,7 @@ export const api = {
       return data.results
     },
     async details(placeId: string, sessiontoken?: string): Promise<{ placeId: string; address: string; lat: number; lng: number; city?: string; state?: string }> {
-      const { data } = await http.get(`/places/details/${placeId}`, { params: sessiontoken ? { sessiontoken } : undefined })
+      const { data } = await http.get('/places/details', { params: { placeId, ...(sessiontoken ? { sessiontoken } : {}) } })
       return data
     },
   },
