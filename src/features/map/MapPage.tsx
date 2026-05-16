@@ -344,8 +344,6 @@ export default function MapPage() {
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map
-    map.setCenter(MAP_CENTER)
-    map.setZoom(5)
   }, [])
 
   const onMapIdle = useCallback(() => {
@@ -408,11 +406,19 @@ export default function MapPage() {
           {isLoaded ? (
             <GoogleMap
               mapContainerStyle={{ position: 'absolute', inset: 0 }}
+              center={MAP_CENTER}
+              zoom={5}
               options={MAP_OPTIONS}
               onLoad={onMapLoad}
               onIdle={onMapIdle}
             >
-              {mapReady && <MarkerClusterer>
+              {mapReady && <MarkerClusterer
+                onClusterClick={(_e, cluster, map) => {
+                  const zoom = (map.getZoom() ?? 5) + 3
+                  map.setZoom(Math.min(zoom, 16))
+                  if (cluster.position) map.panTo(cluster.position)
+                }}
+              >
                 {(clusterer) => (
                   <>
                     {validPins.map((pin) => (
