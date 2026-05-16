@@ -296,6 +296,7 @@ export default function MapPage() {
   const { isLoaded } = useJsApiLoader({ googleMapsApiKey: MAPS_API_KEY, id: 'google-map-script' })
   const mapRef = useRef<google.maps.Map | null>(null)
   const hasInitialFit = useRef(false)
+  const [mapReady, setMapReady] = useState(false)
   const [selectedPin, setSelectedPin] = useState<MapPin | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [filters, setFilters] = useState<Filters>({ search: '', state: '', city: '', pinTypeId: '', visibility: '' })
@@ -343,6 +344,10 @@ export default function MapPage() {
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map
+  }, [])
+
+  const onMapIdle = useCallback(() => {
+    setMapReady(true)
   }, [])
 
   // Initial fit — runs once when pins first load
@@ -404,8 +409,9 @@ export default function MapPage() {
               zoom={5}
               options={MAP_OPTIONS}
               onLoad={onMapLoad}
+              onIdle={onMapIdle}
             >
-              <MarkerClusterer>
+              {mapReady && <MarkerClusterer>
                 {(clusterer) => (
                   <>
                     {validPins.map((pin) => (
@@ -424,7 +430,7 @@ export default function MapPage() {
                     ))}
                   </>
                 )}
-              </MarkerClusterer>
+              </MarkerClusterer>}
             </GoogleMap>
           ) : (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-muted)', fontSize: 13 }}>
