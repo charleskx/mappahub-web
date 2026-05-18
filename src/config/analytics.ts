@@ -36,7 +36,7 @@ export function initAnalytics() {
 export function disableAnalytics() {
   if (!GA_ID) return
   // Google's opt-out mechanism
-  ;(window as Record<string, unknown>)[`ga-disable-${GA_ID}`] = true
+  ;(window as unknown as Record<string, unknown>)[`ga-disable-${GA_ID}`] = true
   initialized = false
 }
 
