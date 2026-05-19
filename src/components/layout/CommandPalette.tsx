@@ -15,7 +15,7 @@ const ALL_ITEMS: CommandItem[] = [
   { id: 'map', label: 'Abrir mapa interno', icon: <I.map />, kind: 'Navegação' },
   { id: 'import', label: 'Importar planilha', icon: <I.upload />, kind: 'Ação' },
   { id: 'export', label: 'Exportar dados', icon: <I.download />, kind: 'Ação' },
-  { id: 'settings?tab=security', label: 'Configurar 2FA', icon: <I.shield />, kind: 'Segurança' },
+  { id: 'settings?tab=security', label: 'Configurar', icon: <I.shield />, kind: 'Segurança' },
   { id: 'integrations', label: 'Gerar embed', icon: <I.code />, kind: 'Ação' },
   { id: 'team', label: 'Convidar membro', icon: <I.users />, kind: 'Equipe' },
   { id: 'settings', label: 'Configurações', icon: <I.settings />, kind: 'Configuração' },
