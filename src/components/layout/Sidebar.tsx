@@ -164,7 +164,7 @@ export default function Sidebar({
               </a>
             </div>
           )}
-          <div className="sidebar-tenant" onClick={user?.role !== 'employee' ? () => handleNav('settings') : undefined} style={user?.role === 'employee' ? { cursor: 'default' } : undefined}>
+          <div className="sidebar-tenant" onClick={() => handleNav('settings')}>
             <div className="tenant-avatar">{initials}</div>
             <div className="sidebar-tenant-text">
               <div className="name">{user?.name ?? 'Usuário'}</div>

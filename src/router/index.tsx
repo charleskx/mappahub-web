@@ -93,7 +93,7 @@ export default function AppRouter() {
                   <Route path="import" element={<ImportPage />} />
                   <Route path="export" element={<ExportPage />} />
                   <Route path="integrations" element={<IntegrationsPage />} />
-                  <Route path="settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
+                  <Route path="settings" element={<SettingsPage />} />
                   <Route path="team" element={<AdminRoute><TeamPage /></AdminRoute>} />
                   <Route path="billing" element={<AdminRoute><BillingPage /></AdminRoute>} />
                   <Route path="pin-types" element={<PinTypesPage />} />

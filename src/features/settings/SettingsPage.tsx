@@ -258,8 +258,16 @@ function WorkspaceTab() {
 }
 
 export default function SettingsPage() {
+  const { user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
+  const isEmployee = user?.role === 'employee'
   const tab = searchParams.get('tab') ?? 'profile'
+
+  const tabs = [
+    { value: 'profile', label: 'Perfil' },
+    { value: 'security', label: 'Segurança' },
+    ...(!isEmployee ? [{ value: 'workspace', label: 'Workspace' }] : []),
+  ]
 
   return (
     <div className="page">
@@ -273,16 +281,12 @@ export default function SettingsPage() {
       <Tabs
         value={tab}
         onChange={(v) => setSearchParams({ tab: v })}
-        items={[
-          { value: 'profile', label: 'Perfil' },
-          { value: 'security', label: 'Segurança' },
-          { value: 'workspace', label: 'Workspace' },
-        ]}
+        items={tabs}
       />
 
       {tab === 'profile' && <ProfileTab />}
       {tab === 'security' && <SecurityTab />}
-      {tab === 'workspace' && <WorkspaceTab />}
+      {tab === 'workspace' && !isEmployee && <WorkspaceTab />}
     </div>
   )
 }
