@@ -41,6 +41,7 @@ const adminItems: NavItem[] = [
 
 const employeeItems: NavItem[] = [
   { id: 'pin-types', label: 'Tipos de pin', icon: <I.pin /> },
+  { id: 'settings', label: 'Configurações', icon: <I.settings /> },
 ]
 
 const supportItems: NavItem[] = [
