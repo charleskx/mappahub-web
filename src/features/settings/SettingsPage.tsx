@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
@@ -217,6 +217,7 @@ function WorkspaceTab() {
   const [brandFooterText, setBrandFooterText] = useState('')
   const [brandLogoUrl, setBrandLogoUrl] = useState('')
   const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (settings) {
@@ -296,12 +297,16 @@ function WorkspaceTab() {
                   style={{ height: 40, maxWidth: 120, objectFit: 'contain', borderRadius: 6, border: '1px solid var(--border)', padding: 4 }}
                 />
               )}
-              <label style={{ cursor: 'pointer' }}>
-                <input type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" style={{ display: 'none' }} onChange={handleLogoUpload} disabled={uploading} />
-                <Button variant="ghost" size="sm" disabled={uploading} onClick={() => {}}>
-                  {uploading ? 'Enviando…' : brandLogoUrl ? 'Trocar logo' : 'Enviar logo'}
-                </Button>
-              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                style={{ display: 'none' }}
+                onChange={handleLogoUpload}
+              />
+              <Button variant="ghost" size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+                {uploading ? 'Enviando…' : brandLogoUrl ? 'Trocar logo' : 'Enviar logo'}
+              </Button>
               {brandLogoUrl && (
                 <Button variant="ghost" size="sm" onClick={() => setBrandLogoUrl('')}>Remover</Button>
               )}
