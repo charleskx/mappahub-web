@@ -124,6 +124,11 @@ export const api = {
       await http.post('/auth/resend-verification', { email })
     },
 
+    async acceptInvite(token: string, name: string, password: string): Promise<void> {
+      const { data } = await http.post<{ accessToken: string; refreshToken: string }>('/auth/accept-invite', { token, name, password })
+      storeTokens(data)
+    },
+
     async me(): Promise<User & { subscriptionStatus: string | null }> {
       const { data } = await http.get<Record<string, unknown>>('/auth/me')
       return {

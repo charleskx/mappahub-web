@@ -9,6 +9,7 @@ const RegisterPage = lazy(() => import('../features/auth/RegisterPage'))
 const ForgotPage = lazy(() => import('../features/auth/ForgotPage'))
 const ResetPasswordPage = lazy(() => import('../features/auth/ResetPasswordPage'))
 const VerifyEmailPage = lazy(() => import('../features/auth/VerifyEmailPage'))
+const AcceptInvitePage = lazy(() => import('../features/auth/AcceptInvitePage'))
 const TwoFactorPage = lazy(() => import('../features/auth/TwoFactorPage'))
 const OnboardingPage = lazy(() => import('../features/auth/OnboardingPage'))
 
@@ -61,6 +62,7 @@ export default function AppRouter() {
         <Route path="/forgot" element={<GuestRoute><ForgotPage /></GuestRoute>} />
         <Route path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />
         <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/auth/accept-invite" element={<GuestRoute><AcceptInvitePage /></GuestRoute>} />
         <Route path="/2fa" element={<TwoFactorPage />} />
         <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
 
