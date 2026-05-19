@@ -52,6 +52,13 @@ function GuestRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth()
+  if (isLoading) return <Loader />
+  if (!user || user.role === 'employee') return <Navigate to="/dashboard" replace />
+  return <>{children}</>
+}
+
 export default function AppRouter() {
   return (
     <Suspense fallback={<Loader />}>
@@ -86,9 +93,9 @@ export default function AppRouter() {
                   <Route path="import" element={<ImportPage />} />
                   <Route path="export" element={<ExportPage />} />
                   <Route path="integrations" element={<IntegrationsPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                  <Route path="team" element={<TeamPage />} />
-                  <Route path="billing" element={<BillingPage />} />
+                  <Route path="settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
+                  <Route path="team" element={<AdminRoute><TeamPage /></AdminRoute>} />
+                  <Route path="billing" element={<AdminRoute><BillingPage /></AdminRoute>} />
                   <Route path="pin-types" element={<PinTypesPage />} />
                   <Route path="admin" element={<SuperAdminPage />} />
                   <Route path="support" element={<TicketsPage />} />

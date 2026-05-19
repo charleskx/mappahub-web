@@ -39,6 +39,10 @@ const adminItems: NavItem[] = [
   { id: 'settings', label: 'Configurações', icon: <I.settings /> },
 ]
 
+const employeeItems: NavItem[] = [
+  { id: 'pin-types', label: 'Tipos de pin', icon: <I.pin /> },
+]
+
 const supportItems: NavItem[] = [
   { id: 'support', label: 'Suporte', icon: <I.ticket /> },
 ]
@@ -124,7 +128,10 @@ export default function Sidebar({
         <nav className="sidebar-nav">
           <NavGroup label="Visão geral" items={mainItems} active={active} onNav={handleNav} />
           <NavGroup label="Dados" items={dataItems} active={active} onNav={handleNav} />
-          <NavGroup label="Workspace" items={adminItems} active={active} onNav={handleNav} />
+          {user?.role === 'employee'
+            ? <NavGroup label="Workspace" items={employeeItems} active={active} onNav={handleNav} />
+            : <NavGroup label="Workspace" items={adminItems} active={active} onNav={handleNav} />
+          }
           <NavGroup label="Ajuda" items={supportItems} active={active} onNav={handleNav} />
           {user?.role === 'super_admin' && (
             <>
@@ -142,7 +149,7 @@ export default function Sidebar({
         </nav>
 
         <div className="sidebar-footer">
-          {trial.daysLeft > 0 && (
+          {trial.daysLeft > 0 && user?.role !== 'employee' && (
             <div className="sidebar-trial">
               <div className="sidebar-trial-title">
                 <span className="dot-warn" />
@@ -157,7 +164,7 @@ export default function Sidebar({
               </a>
             </div>
           )}
-          <div className="sidebar-tenant" onClick={() => handleNav('settings')}>
+          <div className="sidebar-tenant" onClick={user?.role !== 'employee' ? () => handleNav('settings') : undefined} style={user?.role === 'employee' ? { cursor: 'default' } : undefined}>
             <div className="tenant-avatar">{initials}</div>
             <div className="sidebar-tenant-text">
               <div className="name">{user?.name ?? 'Usuário'}</div>
