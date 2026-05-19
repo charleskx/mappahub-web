@@ -208,4 +208,17 @@ export interface TenantSettings {
   defaultMapLat?: number | null
   defaultMapLng?: number | null
   publicMapEnabled?: boolean
+  brandLogoUrl?: string | null
+  brandName?: string | null
+  brandWebsiteUrl?: string | null
+  brandColor?: string | null
+  brandFooterText?: string | null
+}
+
+export interface PublicMapBranding {
+  brandLogoUrl: string | null
+  brandName: string | null
+  brandWebsiteUrl: string | null
+  brandColor: string | null
+  brandFooterText: string | null
 }

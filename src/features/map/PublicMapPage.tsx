@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { GoogleMap, MarkerClusterer, Marker, Circle, useJsApiLoader } from '@react-google-maps/api'
 import { api } from '../../lib/api'
-import type { MapPin } from '../../types'
+import type { MapPin, PublicMapBranding } from '../../types'
 import { makePinIconUrl, PIN_ICON_SIZE } from './mapUtils'
 
 const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? ''
@@ -398,6 +398,7 @@ export default function PublicMapPage() {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [geoStatus, setGeoStatus] = useState<GeoStatus>('idle')
   const [radius, setRadius] = useState(50)
+  const [branding, setBranding] = useState<PublicMapBranding | null>(null)
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 640)
@@ -415,11 +416,13 @@ export default function PublicMapPage() {
       api.maps.publicPins(token),
       api.maps.publicLocalities(token),
       api.maps.publicPinTypes(token),
-    ]).then(([pins, localities, types]) => {
+      api.maps.publicConfig(token),
+    ]).then(([pins, localities, types, config]) => {
       setAllPins(pins)
       setStates(localities.states)
       setCities(localities.cities)
       setPinTypes(types)
+      setBranding(config)
       setReady(true)
     }).catch((err) => {
       const status = err?.response?.status
@@ -603,19 +606,35 @@ export default function PublicMapPage() {
 
       {/* Header */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '10px 16px', background: t.bg, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: 12, boxShadow: t.shadowSm, zIndex: 1000 }}>
-        <a href="https://mappahub.com.br" target="_blank" rel="noopener noreferrer" title="Powered by MappaHub"
-          style={{ display: 'flex', alignItems: 'center', gap: 7, textDecoration: 'none', flexShrink: 0 }}>
-          <div style={{ width: 26, height: 26, borderRadius: 7, background: t.accent, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 21s7-7 7-12a7 7 0 10-14 0c0 5 7 12 7 12z" /><circle cx="12" cy="9" r="2.5" fill="white" stroke="none" />
-            </svg>
-          </div>
-          {!isMobile && (
-            <span style={{ fontSize: 11, color: t.fgMuted, letterSpacing: '0.01em' }}>
-              Powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
-            </span>
-          )}
-        </a>
+        {branding?.brandLogoUrl || branding?.brandName ? (
+          <a
+            href={branding.brandWebsiteUrl ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}
+          >
+            {branding.brandLogoUrl && (
+              <img src={branding.brandLogoUrl} alt={branding.brandName ?? 'Logo'} style={{ height: 28, maxWidth: 100, objectFit: 'contain' }} />
+            )}
+            {branding.brandName && !branding.brandLogoUrl && (
+              <span style={{ fontSize: 14, fontWeight: 700, color: branding.brandColor ?? t.accent }}>{branding.brandName}</span>
+            )}
+          </a>
+        ) : (
+          <a href="https://mappahub.com.br" target="_blank" rel="noopener noreferrer" title="Powered by MappaHub"
+            style={{ display: 'flex', alignItems: 'center', gap: 7, textDecoration: 'none', flexShrink: 0 }}>
+            <div style={{ width: 26, height: 26, borderRadius: 7, background: t.accent, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 21s7-7 7-12a7 7 0 10-14 0c0 5 7 12 7 12z" /><circle cx="12" cy="9" r="2.5" fill="white" stroke="none" />
+              </svg>
+            </div>
+            {!isMobile && (
+              <span style={{ fontSize: 11, color: t.fgMuted, letterSpacing: '0.01em' }}>
+                Powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
+              </span>
+            )}
+          </a>
+        )}
 
         <div style={{ flex: 1, fontSize: 13, color: t.fgMuted }}>
           <span style={{ fontWeight: 600, color: t.fg }}>{filtered.length}</span>
@@ -633,11 +652,11 @@ export default function PublicMapPage() {
           }}
           style={{
             display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 20,
-            border: `1.5px solid ${hasActive ? t.accent : t.border}`,
-            background: hasActive ? t.accent : t.bg,
+            border: `1.5px solid ${hasActive ? (branding?.brandColor ?? t.accent) : t.border}`,
+            background: hasActive ? (branding?.brandColor ?? t.accent) : t.bg,
             color: hasActive ? '#fff' : t.fg,
             fontSize: 13, fontWeight: 600, cursor: 'pointer',
-            boxShadow: hasActive ? `0 2px 8px ${t.accent}40` : 'none',
+            boxShadow: hasActive ? `0 2px 8px ${(branding?.brandColor ?? t.accent)}40` : 'none',
             transition: 'all .15s', fontFamily: 'inherit',
           }}
         >
@@ -757,6 +776,13 @@ export default function PublicMapPage() {
           {selectedPin && <InfoPopup pin={selectedPin} distance={selectedPinDist} onClose={() => { setSelectedPin(null); setSelectedPinDist(undefined) }} />}
         </div>
       </div>
+
+      {/* Footer */}
+      {branding?.brandFooterText && (
+        <div style={{ flexShrink: 0, padding: '6px 16px', background: t.bg, borderTop: `1px solid ${t.border}`, textAlign: 'center', fontSize: 11, color: t.fgMuted }}>
+          {branding.brandFooterText}
+        </div>
+      )}
 
       {/* Mobile bottom sheet */}
       {isMobile && filtersOpen && (

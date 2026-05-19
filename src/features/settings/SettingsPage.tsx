@@ -211,15 +211,48 @@ function WorkspaceTab() {
     queryFn: () => api.settings.get(),
   })
   const [publicMap, setPublicMap] = useState(false)
+  const [brandName, setBrandName] = useState('')
+  const [brandWebsiteUrl, setBrandWebsiteUrl] = useState('')
+  const [brandColor, setBrandColor] = useState('#4f46e5')
+  const [brandFooterText, setBrandFooterText] = useState('')
+  const [brandLogoUrl, setBrandLogoUrl] = useState('')
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     if (settings) {
       setPublicMap(settings.publicMapEnabled ?? false)
+      setBrandName(settings.brandName ?? '')
+      setBrandWebsiteUrl(settings.brandWebsiteUrl ?? '')
+      setBrandColor(settings.brandColor ?? '#4f46e5')
+      setBrandFooterText(settings.brandFooterText ?? '')
+      setBrandLogoUrl(settings.brandLogoUrl ?? '')
     }
   }, [settings])
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const url = await api.settings.uploadLogo(file)
+      setBrandLogoUrl(url)
+      push({ title: 'Logo enviada!', tone: 'success' })
+    } catch {
+      push({ title: 'Erro ao enviar logo', desc: 'Use JPG, PNG, WebP ou SVG até 2 MB', tone: 'error' })
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const mutation = useMutation({
-    mutationFn: () => api.settings.update({ publicMapEnabled: publicMap }),
+    mutationFn: () => api.settings.update({
+      publicMapEnabled: publicMap,
+      brandName: brandName || null,
+      brandWebsiteUrl: brandWebsiteUrl || null,
+      brandColor: brandColor || null,
+      brandFooterText: brandFooterText || null,
+      brandLogoUrl: brandLogoUrl || null,
+    }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['settings'] })
       push({ title: 'Configurações salvas', tone: 'success' })
@@ -230,30 +263,100 @@ function WorkspaceTab() {
   if (isLoading) return <div className="muted">Carregando…</div>
 
   return (
-    <Card>
-      <CardHeader title="Configurações do workspace" desc="Personalize as configurações da sua empresa" />
-      <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <Field label="Mapa público" hint="Permite gerar embeds públicos do mapa de parceiros">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <input
-              type="checkbox"
-              id="public-map"
-              checked={publicMap}
-              onChange={(e) => setPublicMap(e.target.checked)}
-              style={{ width: 16, height: 16, cursor: 'pointer' }}
-            />
-            <label htmlFor="public-map" style={{ cursor: 'pointer', fontSize: 14 }}>
-              Habilitar mapa público
-            </label>
-          </div>
-        </Field>
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Button variant="primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            {mutation.isPending ? 'Salvando…' : 'Salvar configurações'}
-          </Button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <Card>
+        <CardHeader title="Mapa público" desc="Controle a visibilidade e embeds do mapa" />
+        <div className="card-body">
+          <Field label="Mapa público" hint="Permite gerar embeds públicos do mapa de parceiros">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <input
+                type="checkbox"
+                id="public-map"
+                checked={publicMap}
+                onChange={(e) => setPublicMap(e.target.checked)}
+                style={{ width: 16, height: 16, cursor: 'pointer' }}
+              />
+              <label htmlFor="public-map" style={{ cursor: 'pointer', fontSize: 14 }}>
+                Habilitar mapa público
+              </label>
+            </div>
+          </Field>
         </div>
+      </Card>
+
+      <Card>
+        <CardHeader title="Personalização do mapa público" desc="Adicione sua marca ao mapa público" />
+        <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <Field label="Logo" hint="JPG, PNG, WebP ou SVG — máx. 2 MB">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              {brandLogoUrl && (
+                <img
+                  src={brandLogoUrl}
+                  alt="Logo"
+                  style={{ height: 40, maxWidth: 120, objectFit: 'contain', borderRadius: 6, border: '1px solid var(--border)', padding: 4 }}
+                />
+              )}
+              <label style={{ cursor: 'pointer' }}>
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" style={{ display: 'none' }} onChange={handleLogoUpload} disabled={uploading} />
+                <Button variant="ghost" size="sm" disabled={uploading} onClick={() => {}}>
+                  {uploading ? 'Enviando…' : brandLogoUrl ? 'Trocar logo' : 'Enviar logo'}
+                </Button>
+              </label>
+              {brandLogoUrl && (
+                <Button variant="ghost" size="sm" onClick={() => setBrandLogoUrl('')}>Remover</Button>
+              )}
+            </div>
+          </Field>
+
+          <Field label="Nome da empresa">
+            <Input
+              value={brandName}
+              onChange={(e) => setBrandName(e.target.value)}
+              placeholder="Ex: Minha Empresa"
+            />
+          </Field>
+
+          <Field label="Site" hint="Link ao clicar na logo">
+            <Input
+              value={brandWebsiteUrl}
+              onChange={(e) => setBrandWebsiteUrl(e.target.value)}
+              placeholder="https://empresa.com.br"
+            />
+          </Field>
+
+          <Field label="Cor primária">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <input
+                type="color"
+                value={brandColor}
+                onChange={(e) => setBrandColor(e.target.value)}
+                style={{ width: 40, height: 36, borderRadius: 6, border: '1px solid var(--border)', cursor: 'pointer', padding: 2 }}
+              />
+              <Input
+                value={brandColor}
+                onChange={(e) => setBrandColor(e.target.value)}
+                placeholder="#4f46e5"
+                style={{ maxWidth: 120 }}
+              />
+            </div>
+          </Field>
+
+          <Field label="Texto do rodapé" hint="Aparece na parte inferior do mapa público">
+            <Input
+              value={brandFooterText}
+              onChange={(e) => setBrandFooterText(e.target.value)}
+              placeholder="Ex: © 2025 Minha Empresa. Todos os direitos reservados."
+            />
+          </Field>
+        </div>
+      </Card>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button variant="primary" onClick={() => mutation.mutate()} disabled={mutation.isPending || uploading}>
+          {mutation.isPending ? 'Salvando…' : 'Salvar configurações'}
+        </Button>
       </div>
-    </Card>
+    </div>
   )
 }
 

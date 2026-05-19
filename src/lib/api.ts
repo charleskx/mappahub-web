@@ -12,6 +12,7 @@ import type {
   Partner,
   PartnerColumn,
   PinType,
+  PublicMapBranding,
   Subscription,
   Tenant,
   TenantSettings,
@@ -349,8 +350,8 @@ export const api = {
       const { data } = await axios.get(`${BASE_URL}/maps/public/${token}/pin-types`)
       return data
     },
-    async publicConfig(token: string): Promise<Record<string, never>> {
-      const { data } = await axios.get(`${BASE_URL}/maps/public/${token}/config`)
+    async publicConfig(token: string): Promise<PublicMapBranding> {
+      const { data } = await axios.get<PublicMapBranding>(`${BASE_URL}/maps/public/${token}/config`)
       return data
     },
   },
@@ -423,6 +424,14 @@ export const api = {
     async update(payload: Partial<TenantSettings>): Promise<TenantSettings> {
       const { data } = await http.put<TenantSettings>('/tenant/settings', payload)
       return data
+    },
+    async uploadLogo(file: File): Promise<string> {
+      const form = new FormData()
+      form.append('file', file)
+      const { data } = await http.post<{ url: string }>('/tenant/upload/logo', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      return data.url
     },
   },
 
