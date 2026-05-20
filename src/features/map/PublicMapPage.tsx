@@ -416,18 +416,20 @@ export default function PublicMapPage() {
       api.maps.publicPins(token),
       api.maps.publicLocalities(token),
       api.maps.publicPinTypes(token),
-      api.maps.publicConfig(token),
-    ]).then(([pins, localities, types, config]) => {
+    ]).then(([pins, localities, types]) => {
       setAllPins(pins)
       setStates(localities.states)
       setCities(localities.cities)
       setPinTypes(types)
-      setBranding(config)
       setReady(true)
     }).catch((err) => {
       const status = err?.response?.status
       setError(status === 403 ? 'disabled' : 'not-found')
     })
+
+    api.maps.publicConfig(token)
+      .then(setBranding)
+      .catch(() => {})
   }, [token])
 
   useEffect(() => {
