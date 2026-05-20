@@ -778,44 +778,15 @@ export default function PublicMapPage() {
       </div>
 
       {/* Footer */}
-      {(branding?.brandFooterText || isMobile) && (
-        <div style={{ flexShrink: 0, padding: '5px 16px', background: t.bg, borderTop: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-          <span style={{ fontSize: 11, color: t.fgMuted }}>
-            {branding?.brandFooterText ?? ''}
-          </span>
-          {isMobile && (
-            <a href="https://mappahub.com.br" target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 10, color: t.fgMuted, textDecoration: 'none', letterSpacing: '0.01em', flexShrink: 0 }}>
-              powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
-            </a>
-          )}
-        </div>
-      )}
-
-      {/* Powered by MappaHub — desktop only */}
-      <a
-        href="https://mappahub.com.br"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          display: isMobile ? 'none' : 'flex',
-          position: 'fixed', bottom: 12, right: 12, zIndex: 900,
-          alignItems: 'center', gap: 5,
-          padding: '4px 8px 4px 6px', borderRadius: 20,
-          background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(6px)',
-          boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
-          textDecoration: 'none', border: '1px solid rgba(0,0,0,0.06)',
-        }}
-      >
-        <div style={{ width: 16, height: 16, borderRadius: 4, background: t.accent, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 21s7-7 7-12a7 7 0 10-14 0c0 5 7 12 7 12z" /><circle cx="12" cy="9" r="2.5" fill="white" stroke="none" />
-          </svg>
-        </div>
-        <span style={{ fontSize: 10, color: '#6b7280', letterSpacing: '0.01em', fontFamily: 'system-ui, sans-serif' }}>
-          Powered by <span style={{ fontWeight: 700, color: '#111827' }}>MappaHub</span>
+      <div style={{ flexShrink: 0, padding: '5px 16px', background: t.bg, borderTop: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <span style={{ fontSize: 11, color: t.fgMuted }}>
+          {branding?.brandFooterText ?? ''}
         </span>
-      </a>
+        <a href="https://mappahub.com.br" target="_blank" rel="noopener noreferrer"
+          style={{ fontSize: 10, color: t.fgMuted, textDecoration: 'none', letterSpacing: '0.01em', flexShrink: 0 }}>
+          powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
+        </a>
+      </div>
 
       {/* Mobile bottom sheet */}
       {isMobile && filtersOpen && (
