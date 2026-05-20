@@ -798,7 +798,7 @@ export default function PublicMapPage() {
         style={{
           display: isMobile ? 'none' : 'flex',
           position: 'fixed', bottom: 12, right: 12, zIndex: 900,
-          display: 'flex', alignItems: 'center', gap: 5,
+          alignItems: 'center', gap: 5,
           padding: '4px 8px 4px 6px', borderRadius: 20,
           background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(6px)',
           boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
