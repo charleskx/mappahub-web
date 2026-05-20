@@ -784,6 +784,30 @@ export default function PublicMapPage() {
         </div>
       )}
 
+      {/* Powered by MappaHub — always visible */}
+      <a
+        href="https://mappahub.com.br"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          position: 'fixed', bottom: 12, right: 12, zIndex: 900,
+          display: 'flex', alignItems: 'center', gap: 5,
+          padding: '4px 8px 4px 6px', borderRadius: 20,
+          background: 'rgba(255,255,255,0.88)', backdropFilter: 'blur(6px)',
+          boxShadow: '0 1px 6px rgba(0,0,0,0.12)',
+          textDecoration: 'none', border: '1px solid rgba(0,0,0,0.06)',
+        }}
+      >
+        <div style={{ width: 16, height: 16, borderRadius: 4, background: t.accent, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 21s7-7 7-12a7 7 0 10-14 0c0 5 7 12 7 12z" /><circle cx="12" cy="9" r="2.5" fill="white" stroke="none" />
+          </svg>
+        </div>
+        <span style={{ fontSize: 10, color: '#6b7280', letterSpacing: '0.01em', fontFamily: 'system-ui, sans-serif' }}>
+          Powered by <span style={{ fontWeight: 700, color: '#111827' }}>MappaHub</span>
+        </span>
+      </a>
+
       {/* Mobile bottom sheet */}
       {isMobile && filtersOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 500 }}>
