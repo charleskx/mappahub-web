@@ -621,12 +621,6 @@ export default function PublicMapPage() {
                 <span style={{ fontSize: 14, fontWeight: 700, color: branding.brandColor ?? t.accent }}>{branding.brandName}</span>
               )}
             </a>
-            {isMobile && (
-              <a href="https://mappahub.com.br" target="_blank" rel="noopener noreferrer"
-                style={{ fontSize: 9, color: t.fgMuted, textDecoration: 'none', letterSpacing: '0.01em', lineHeight: 1 }}>
-                powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
-              </a>
-            )}
           </div>
         ) : (
           <a href="https://mappahub.com.br" target="_blank" rel="noopener noreferrer" title="Powered by MappaHub"
@@ -784,9 +778,17 @@ export default function PublicMapPage() {
       </div>
 
       {/* Footer */}
-      {branding?.brandFooterText && (
-        <div style={{ flexShrink: 0, padding: '6px 16px', background: t.bg, borderTop: `1px solid ${t.border}`, textAlign: 'center', fontSize: 11, color: t.fgMuted }}>
-          {branding.brandFooterText}
+      {(branding?.brandFooterText || isMobile) && (
+        <div style={{ flexShrink: 0, padding: '5px 16px', background: t.bg, borderTop: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <span style={{ fontSize: 11, color: t.fgMuted }}>
+            {branding?.brandFooterText ?? ''}
+          </span>
+          {isMobile && (
+            <a href="https://mappahub.com.br" target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 10, color: t.fgMuted, textDecoration: 'none', letterSpacing: '0.01em', flexShrink: 0 }}>
+              powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
+            </a>
+          )}
         </div>
       )}
 
