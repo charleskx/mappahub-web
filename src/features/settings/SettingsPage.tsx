@@ -239,7 +239,7 @@ function WorkspaceTab() {
       setBrandLogoUrl(url)
       push({ title: 'Logo enviada!', tone: 'success' })
     } catch {
-      push({ title: 'Erro ao enviar logo', desc: 'Use JPG, PNG, WebP ou SVG até 2 MB', tone: 'error' })
+      push({ title: 'Erro ao enviar logo', desc: 'Use JPG, PNG ou WebP até 2 MB', tone: 'error' })
     } finally {
       setUploading(false)
     }
@@ -288,7 +288,7 @@ function WorkspaceTab() {
       <Card>
         <CardHeader title="Personalização do mapa público" desc="Adicione sua marca ao mapa público" />
         <div className="card-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Field label="Logo" hint="JPG, PNG, WebP ou SVG — máx. 2 MB">
+          <Field label="Logo" hint="JPG, PNG ou WebP — máx. 2 MB">
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               {brandLogoUrl && (
                 <img
@@ -300,7 +300,7 @@ function WorkspaceTab() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                accept="image/jpeg,image/png,image/webp"
                 style={{ display: 'none' }}
                 onChange={handleLogoUpload}
               />

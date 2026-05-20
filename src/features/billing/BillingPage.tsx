@@ -1,5 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { useAuth } from '../../context/auth'
 import { Badge, Button, Card, CardHeader, Progress, Skeleton, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
 
@@ -49,6 +50,8 @@ const PLANS = [
 
 export default function BillingPage() {
   const { push } = useToast()
+  const { user } = useAuth()
+  const isOwner = user?.role === 'owner' || user?.role === 'super_admin'
 
   const { data: subscription, isLoading } = useQuery({
     queryKey: ['billing'],
@@ -118,27 +121,29 @@ export default function BillingPage() {
                   </div>
                 )}
 
-                <div>
-                  {planType && planType !== 'trial' ? (
-                    <Button
-                      variant="outline"
-                      leftIcon={<I.card size={14} />}
-                      onClick={() => portalMutation.mutate()}
-                      disabled={portalMutation.isPending}
-                    >
-                      {portalMutation.isPending ? 'Abrindo…' : 'Gerenciar assinatura'}
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="primary"
-                      leftIcon={<I.card size={14} />}
-                      onClick={() => checkoutMutation.mutate('monthly')}
-                      disabled={checkoutMutation.isPending}
-                    >
-                      {checkoutMutation.isPending ? 'Aguarde…' : 'Assinar agora'}
-                    </Button>
-                  )}
-                </div>
+                {isOwner && (
+                  <div>
+                    {planType && planType !== 'trial' ? (
+                      <Button
+                        variant="outline"
+                        leftIcon={<I.card size={14} />}
+                        onClick={() => portalMutation.mutate()}
+                        disabled={portalMutation.isPending}
+                      >
+                        {portalMutation.isPending ? 'Abrindo…' : 'Gerenciar assinatura'}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="primary"
+                        leftIcon={<I.card size={14} />}
+                        onClick={() => checkoutMutation.mutate('monthly')}
+                        disabled={checkoutMutation.isPending}
+                      >
+                        {checkoutMutation.isPending ? 'Aguarde…' : 'Assinar agora'}
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -242,7 +247,7 @@ export default function BillingPage() {
                       {/* CTA */}
                       {isCurrent ? (
                         <Badge tone="success" style={{ alignSelf: 'flex-start' }}>Plano atual</Badge>
-                      ) : hasActivePlan ? (
+                      ) : !isOwner ? null : hasActivePlan ? (
                         // User already has an active plan — guide to portal instead of new checkout
                         <div style={{
                           display: 'flex',

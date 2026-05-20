@@ -46,8 +46,8 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setError('')
 
-    if (password.length < 8) {
-      setError('A senha deve ter ao menos 8 caracteres')
+    if (password.length < 12) {
+      setError('A senha deve ter ao menos 12 caracteres')
       return
     }
     if (password !== confirm) {
@@ -84,7 +84,7 @@ export default function ResetPasswordPage() {
                 <Input
                   icon={<I.lock />}
                   type={showPw ? 'text' : 'password'}
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder="Mínimo 12 caracteres"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

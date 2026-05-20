@@ -96,15 +96,15 @@ export default function RegisterPage() {
                     autoComplete="email"
                   />
                 </Field>
-                <Field label="Senha" hint="Mínimo 8 caracteres">
+                <Field label="Senha" hint="Mínimo 12 caracteres">
                   <Input
                     icon={<I.lock />}
                     type="password"
-                    placeholder="Mínimo 8 caracteres"
+                    placeholder="Mínimo 12 caracteres"
                     value={form.password}
                     onChange={set('password')}
                     required
-                    minLength={8}
+                    minLength={12}
                     autoComplete="new-password"
                   />
                 </Field>

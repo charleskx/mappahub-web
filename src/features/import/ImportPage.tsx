@@ -171,7 +171,7 @@ export default function ImportPage() {
               <div style={{ fontWeight: 500, marginBottom: 4 }}>
                 Arraste o arquivo aqui ou clique para selecionar
               </div>
-              <div className="muted text-sm">Suporta .xlsx, .xls e .csv · Máx. 10 MB</div>
+              <div className="muted text-sm">Suporta .xlsx, .xls e .csv · Máx. 50 MB</div>
               <Button variant="outline" size="sm" style={{ marginTop: 16 }}>
                 Selecionar arquivo
               </Button>
