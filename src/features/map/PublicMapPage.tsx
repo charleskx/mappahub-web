@@ -607,19 +607,27 @@ export default function PublicMapPage() {
       {/* Header */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '10px 16px', background: t.bg, borderBottom: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: 12, boxShadow: t.shadowSm, zIndex: 1000 }}>
         {branding?.brandLogoUrl || branding?.brandName ? (
-          <a
-            href={branding.brandWebsiteUrl ?? undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', flexShrink: 0 }}
-          >
-            {branding.brandLogoUrl && (
-              <img src={branding.brandLogoUrl} alt={branding.brandName ?? 'Logo'} style={{ height: 28, maxWidth: 100, objectFit: 'contain' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
+            <a
+              href={branding.brandWebsiteUrl ?? undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}
+            >
+              {branding.brandLogoUrl && (
+                <img src={branding.brandLogoUrl} alt={branding.brandName ?? 'Logo'} style={{ height: 26, maxWidth: 90, objectFit: 'contain' }} />
+              )}
+              {branding.brandName && !branding.brandLogoUrl && (
+                <span style={{ fontSize: 14, fontWeight: 700, color: branding.brandColor ?? t.accent }}>{branding.brandName}</span>
+              )}
+            </a>
+            {isMobile && (
+              <a href="https://mappahub.com.br" target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 9, color: t.fgMuted, textDecoration: 'none', letterSpacing: '0.01em', lineHeight: 1 }}>
+                powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
+              </a>
             )}
-            {branding.brandName && !branding.brandLogoUrl && (
-              <span style={{ fontSize: 14, fontWeight: 700, color: branding.brandColor ?? t.accent }}>{branding.brandName}</span>
-            )}
-          </a>
+          </div>
         ) : (
           <a href="https://mappahub.com.br" target="_blank" rel="noopener noreferrer" title="Powered by MappaHub"
             style={{ display: 'flex', alignItems: 'center', gap: 7, textDecoration: 'none', flexShrink: 0 }}>
@@ -628,11 +636,9 @@ export default function PublicMapPage() {
                 <path d="M12 21s7-7 7-12a7 7 0 10-14 0c0 5 7 12 7 12z" /><circle cx="12" cy="9" r="2.5" fill="white" stroke="none" />
               </svg>
             </div>
-            {!isMobile && (
-              <span style={{ fontSize: 11, color: t.fgMuted, letterSpacing: '0.01em' }}>
-                Powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
-              </span>
-            )}
+            <span style={{ fontSize: 11, color: t.fgMuted, letterSpacing: '0.01em' }}>
+              Powered by <span style={{ fontWeight: 700, color: t.fg }}>MappaHub</span>
+            </span>
           </a>
         )}
 
@@ -784,12 +790,13 @@ export default function PublicMapPage() {
         </div>
       )}
 
-      {/* Powered by MappaHub — always visible */}
+      {/* Powered by MappaHub — desktop only */}
       <a
         href="https://mappahub.com.br"
         target="_blank"
         rel="noopener noreferrer"
         style={{
+          display: isMobile ? 'none' : 'flex',
           position: 'fixed', bottom: 12, right: 12, zIndex: 900,
           display: 'flex', alignItems: 'center', gap: 5,
           padding: '4px 8px 4px 6px', borderRadius: 20,
