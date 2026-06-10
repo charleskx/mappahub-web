@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "release": "node scripts/release.mjs"
+    "release": "node scripts/release.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@microsoft/fetch-event-source": "^2.0.1",
@@ -31,6 +33,7 @@
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
     "@eslint/js": "^9.13.0",
+    "@playwright/test": "^1.60.0",
     "@types/google.maps": "^3.64.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
