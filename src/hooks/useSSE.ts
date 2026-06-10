@@ -29,7 +29,9 @@ export function useSSE(url: string | null, handlers: Handlers) {
         if (!msg.event || msg.event === 'ping') return
         try {
           handlersRef.current[msg.event]?.(JSON.parse(msg.data))
-        } catch {}
+        } catch {
+          /* ignora payloads SSE malformados */
+        }
       },
       onerror: (err) => {
         // Let the library retry on network errors; stop on auth errors
