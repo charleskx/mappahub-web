@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
+import { useAuth } from '../../context/auth'
 import { Badge, Button, Input, Skeleton, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
 import type { GeocodingLog } from '../../types'
@@ -38,6 +39,9 @@ function LogRow({ log }: { log: GeocodingLog }) {
   const [fieldError, setFieldError] = useState('')
   const { push } = useToast()
   const qc = useQueryClient()
+  const { user } = useAuth()
+  // Editar parceiro exige role owner/admin — employee tem acesso somente leitura (backend retorna 403)
+  const canFix = user?.role !== 'employee'
 
   const handleValidate = async () => {
     if (!newAddress.trim()) return
@@ -169,7 +173,8 @@ function LogRow({ log }: { log: GeocodingLog }) {
             <Detail label="Status geocoding" value={log.geocodeStatus ?? '—'} />
           </div>
 
-          {/* Fix address */}
+          {/* Fix address — somente owner/admin */}
+          {canFix && (
           <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--fg-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Corrigir endereço
@@ -213,6 +218,7 @@ function LogRow({ log }: { log: GeocodingLog }) {
               </div>
             )}
           </div>
+          )}
         </div>
       )}
     </div>
