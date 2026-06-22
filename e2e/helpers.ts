@@ -1,10 +1,12 @@
 import type { Page } from '@playwright/test'
 
 // ── API base URL ───────────────────────────────────────────────────────────────
-// Must match VITE_API_URL (defaults to http://localhost:3000 when unset).
+// Must match the app's VITE_API_URL so route mocks intercept the real requests.
+// Tracks the same env the app reads (CI sets it to http://localhost:3333),
+// falling back to the dev default when unset.
 // Using the full origin prevents route globs from accidentally intercepting
 // same-path page navigations on localhost:5173.
-export const API_URL = 'http://localhost:3000'
+export const API_URL = process.env.VITE_API_URL ?? 'http://localhost:3000'
 
 // ── Mock users ─────────────────────────────────────────────────────────────────
 
