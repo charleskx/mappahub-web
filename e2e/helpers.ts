@@ -21,6 +21,7 @@ export const OWNER = {
 
 export const ADMIN = { ...OWNER, id: 'u2', role: 'admin', name: 'Admin User', email: 'admin@example.com' }
 export const EMPLOYEE = { ...OWNER, id: 'u3', role: 'employee', name: 'Employee User', email: 'employee@example.com' }
+export const SUPER_ADMIN = { ...OWNER, id: 'u4', role: 'super_admin', name: 'Super Admin', email: 'super@example.com' }
 
 // ── Mock subscriptions ─────────────────────────────────────────────────────────
 

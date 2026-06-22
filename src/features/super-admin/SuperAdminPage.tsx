@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
@@ -6,7 +6,7 @@ import { useAuth } from '../../context/auth'
 import { Badge, Button, Input, Modal, Skeleton, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
 import { useNavigate } from 'react-router-dom'
-import type { ImportJob } from '../../types'
+import type { ImportJob, TenantGeocoding } from '../../types'
 
 const PLAN_LABELS: Record<string, string> = {
   monthly: 'Mensal',
@@ -308,6 +308,110 @@ function TenantUsersModal({
   )
 }
 
+function TenantGeocodingModal({
+  tenantId,
+  tenantName,
+  open,
+  onClose,
+}: {
+  tenantId: string
+  tenantName: string
+  open: boolean
+  onClose: () => void
+}) {
+  const qc = useQueryClient()
+  const { push } = useToast()
+  const [limit, setLimit] = useState('')
+  const [expiresAt, setExpiresAt] = useState('')
+
+  const { data, isLoading } = useQuery<TenantGeocoding>({
+    queryKey: ['admin', 'tenants', tenantId, 'geocoding'],
+    queryFn: () => api.admin.tenantGeocoding(tenantId),
+    enabled: open,
+  })
+
+  useEffect(() => {
+    if (!data) return
+    setLimit(data.monthlyLimit != null ? String(data.monthlyLimit) : '')
+    setExpiresAt(data.limitExpiresAt ? data.limitExpiresAt.slice(0, 10) : '')
+  }, [data])
+
+  const saveMutation = useMutation({
+    mutationFn: (payload: { limit: number | null; expiresAt: string | null }) =>
+      api.admin.setGeocodingLimit(tenantId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'tenants', tenantId, 'geocoding'] })
+      push({ title: 'Limite atualizado', tone: 'success' })
+      onClose()
+    },
+    onError: () => push({ title: 'Erro ao atualizar limite', tone: 'error' }),
+  })
+
+  const handleSave = () => {
+    const parsed = limit.trim() === '' ? null : Number(limit)
+    if (parsed != null && (!Number.isInteger(parsed) || parsed < 0)) {
+      push({ title: 'Limite inválido', desc: 'Informe um inteiro maior ou igual a 0.', tone: 'error' })
+      return
+    }
+    saveMutation.mutate({ limit: parsed, expiresAt: expiresAt ? new Date(expiresAt).toISOString() : null })
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title={`Limite de geocoding — ${tenantName}`} desc="Ajuste a franquia mensal grátis deste cliente. Deixe a validade em branco para permanente, ou restaure o padrão." size="lg">
+      {isLoading || !data ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {[...Array(3)].map((_, i) => <Skeleton key={i} h={44} />)}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <div className="muted text-sm">Uso no mês</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>
+                {data.used.toLocaleString('pt-BR')} / {data.effectiveLimit.toLocaleString('pt-BR')}
+              </div>
+            </div>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <div className="muted text-sm">Créditos extras</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>{data.creditsTotal.toLocaleString('pt-BR')}</div>
+            </div>
+          </div>
+
+          <div>
+            <label className="muted text-sm" style={{ display: 'block', marginBottom: 4 }}>
+              Franquia mensal (vazio = padrão de {data.defaultLimit.toLocaleString('pt-BR')})
+            </label>
+            <Input type="number" min={0} placeholder={String(data.defaultLimit)} value={limit} onChange={e => setLimit(e.target.value)} />
+          </div>
+
+          <div>
+            <label className="muted text-sm" style={{ display: 'block', marginBottom: 4 }}>
+              Validade (vazio = permanente)
+            </label>
+            <Input type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)} />
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between' }}>
+            <Button
+              variant="ghost"
+              disabled={saveMutation.isPending}
+              onClick={() => saveMutation.mutate({ limit: null, expiresAt: null })}
+            >
+              Restaurar padrão
+            </Button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+              <Button variant="primary" disabled={saveMutation.isPending} onClick={handleSave}>
+                {saveMutation.isPending ? 'Salvando…' : 'Salvar'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Modal>
+  )
+}
+
 export default function SuperAdminPage() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -317,6 +421,7 @@ export default function SuperAdminPage() {
   const [search, setSearch] = useState('')
   const [importsModal, setImportsModal] = useState<{ id: string; name: string } | null>(null)
   const [usersModal, setUsersModal] = useState<{ id: string; name: string } | null>(null)
+  const [geoModal, setGeoModal] = useState<{ id: string; name: string } | null>(null)
 
   const { data: tenants, isLoading } = useQuery({
     queryKey: ['admin', 'tenants'],
@@ -441,6 +546,13 @@ export default function SuperAdminPage() {
                     >
                       <I.fileSheet size={14} />
                     </button>
+                    <button
+                      className="icon-btn"
+                      title="Limite de geocoding"
+                      onClick={() => setGeoModal({ id: t.id, name: t.name })}
+                    >
+                      <I.zap size={14} />
+                    </button>
                     {t.active ? (
                       <button
                         className="icon-btn"
@@ -484,6 +596,15 @@ export default function SuperAdminPage() {
           tenantName={usersModal.name}
           open={!!usersModal}
           onClose={() => setUsersModal(null)}
+        />
+      )}
+
+      {geoModal && (
+        <TenantGeocodingModal
+          tenantId={geoModal.id}
+          tenantName={geoModal.name}
+          open={!!geoModal}
+          onClose={() => setGeoModal(null)}
         />
       )}
     </div>

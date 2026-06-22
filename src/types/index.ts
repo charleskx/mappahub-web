@@ -19,6 +19,33 @@ export interface Tenant {
   planType?: string | null
   trialEndsAt?: string | null
   currentPeriodEnd?: string | null
+  geocodingMonthlyLimit?: number | null
+  geocodingLimitExpiresAt?: string | null
+}
+
+export interface GeocodingUsage {
+  freeUsed: number
+  freeLimit: number
+  resetsAt: string
+  limitExpiresAt: string | null
+  creditsTotal: number
+  creditLots: Array<{ remaining: number; expiresAt: string }>
+}
+
+export interface CreditPack {
+  id: '1k' | '5k' | '10k' | '25k'
+  credits: number
+  validityDays: number
+  priceCents: number
+}
+
+export interface TenantGeocoding {
+  used: number
+  defaultLimit: number
+  monthlyLimit: number | null
+  limitExpiresAt: string | null
+  effectiveLimit: number
+  creditsTotal: number
 }
 
 export interface PinType {
@@ -193,7 +220,7 @@ export interface GeocodingLog {
   tenantId?: string
   tenantName?: string | null
   address: string
-  status: 'success' | 'no_results' | 'failed'
+  status: 'success' | 'no_results' | 'failed' | 'quota_exceeded'
   errorReason: string | null
   provider: string
   lat?: number | null

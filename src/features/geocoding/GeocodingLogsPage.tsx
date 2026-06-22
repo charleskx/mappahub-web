@@ -1,11 +1,11 @@
 import axios from 'axios'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '../../lib/api'
 import { useAuth } from '../../context/auth'
-import { Badge, Button, Input, Skeleton, useToast } from '../../components/ui'
+import { Badge, Button, Input, Modal, Skeleton, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
-import type { GeocodingLog } from '../../types'
+import type { CreditPack, GeocodingLog, GeocodingUsage } from '../../types'
 
 
 function relTime(iso: string) {
@@ -21,11 +21,13 @@ const STATUS_LABEL: Record<string, string> = {
   no_results: 'Sem resultado',
   failed: 'Erro',
   success: 'Sucesso',
+  quota_exceeded: 'Limite excedido',
 }
 const STATUS_TONE: Record<string, 'danger' | 'warning' | 'success'> = {
   no_results: 'warning',
   failed: 'danger',
   success: 'success',
+  quota_exceeded: 'warning',
 }
 
 type GeoPreview = { lat: number; lng: number; city?: string; state?: string }
@@ -234,6 +236,167 @@ function Detail({ label, value }: { label: string; value: string }) {
   )
 }
 
+const fmtBRL = (cents: number) => (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+
+function UsagePanel() {
+  const { user } = useAuth()
+  const { push } = useToast()
+  const qc = useQueryClient()
+  const [buyOpen, setBuyOpen] = useState(false)
+  const canBuy = user?.role === 'owner' || user?.role === 'super_admin'
+
+  const { data: usage } = useQuery<GeocodingUsage>({
+    queryKey: ['geocoding-usage'],
+    queryFn: () => api.geocodingLogs.usage(),
+    refetchInterval: 60_000,
+  })
+
+  // Retorno do checkout de créditos do Stripe
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const credits = params.get('credits')
+    if (!credits) return
+    if (credits === 'success') {
+      push({ title: 'Compra concluída', desc: 'Seus créditos extras serão liberados em instantes.', tone: 'success' })
+      qc.invalidateQueries({ queryKey: ['geocoding-usage'] })
+    }
+    params.delete('credits')
+    const qs = params.toString()
+    window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''))
+  }, [push, qc])
+
+  if (!usage) return null
+
+  const pct = usage.freeLimit > 0 ? Math.min(100, Math.round((usage.freeUsed / usage.freeLimit) * 100)) : 0
+  const exhausted = usage.freeUsed >= usage.freeLimit
+  const barColor = pct >= 90 ? 'var(--danger)' : pct >= 70 ? 'var(--warning)' : 'var(--success)'
+
+  return (
+    <div style={{
+      padding: '18px 20px', borderRadius: 12, marginBottom: 20,
+      background: 'var(--bg-elev)', border: '1px solid var(--border)',
+      display: 'flex', flexDirection: 'column', gap: 14,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--fg)' }}>Uso de geocoding</div>
+          <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginTop: 2 }}>
+            Franquia mensal renova em {fmtDate(usage.resetsAt)}
+          </div>
+        </div>
+        {canBuy && (
+          <Button variant="primary" size="sm" onClick={() => setBuyOpen(true)}>
+            <I.plus size={14} /> Comprar geocodings extras
+          </Button>
+        )}
+      </div>
+
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+          <span style={{ color: 'var(--fg-muted)' }}>Franquia mensal grátis</span>
+          <span style={{ fontWeight: 600, color: 'var(--fg)' }}>
+            {usage.freeUsed.toLocaleString('pt-BR')} / {usage.freeLimit.toLocaleString('pt-BR')}
+          </span>
+        </div>
+        <div style={{ height: 8, borderRadius: 999, background: 'var(--bg-subtle)', overflow: 'hidden' }}>
+          <div style={{ width: `${pct}%`, height: '100%', background: barColor, transition: 'width .3s' }} />
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--fg-muted)' }}>
+        <I.zap size={14} style={{ color: usage.creditsTotal > 0 ? 'var(--success)' : 'var(--fg-subtle)' }} />
+        <span>
+          Créditos extras disponíveis: <strong style={{ color: 'var(--fg)' }}>{usage.creditsTotal.toLocaleString('pt-BR')}</strong>
+        </span>
+      </div>
+
+      {usage.creditLots.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {usage.creditLots.map((lot, i) => (
+            <div key={i} style={{ fontSize: 12, color: 'var(--fg-subtle)', display: 'flex', gap: 6 }}>
+              <span>{lot.remaining.toLocaleString('pt-BR')} créditos</span>
+              <span>·</span>
+              <span>expira em {fmtDate(lot.expiresAt)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {exhausted && usage.creditsTotal === 0 && (
+        <div style={{
+          display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 14px', borderRadius: 8,
+          background: 'color-mix(in srgb, var(--danger) 8%, transparent)',
+          border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)',
+        }}>
+          <I.alert size={14} style={{ color: 'var(--danger)', marginTop: 1, flexShrink: 0 }} />
+          <span style={{ fontSize: 13, color: 'var(--fg)', lineHeight: 1.5 }}>
+            Franquia mensal esgotada e sem créditos extras — novos endereços não serão geocodificados até a renovação{canBuy ? ' ou a compra de créditos' : ''}.
+          </span>
+        </div>
+      )}
+
+      <BuyCreditsModal open={buyOpen} onClose={() => setBuyOpen(false)} />
+    </div>
+  )
+}
+
+function BuyCreditsModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { push } = useToast()
+  const [buying, setBuying] = useState<string | null>(null)
+
+  const { data: packs = [], isLoading } = useQuery<CreditPack[]>({
+    queryKey: ['credit-packs'],
+    queryFn: () => api.billing.creditPacks(),
+    enabled: open,
+  })
+
+  const handleBuy = async (packId: CreditPack['id']) => {
+    setBuying(packId)
+    try {
+      const { url } = await api.billing.checkoutCredits(packId)
+      window.location.href = url
+    } catch {
+      push({ title: 'Não foi possível iniciar a compra', tone: 'error' })
+      setBuying(null)
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title="Comprar geocodings extras" desc="Créditos pré-pagos, consumidos só depois da franquia mensal. Cada pacote tem sua própria validade." size="lg">
+      {isLoading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {[...Array(4)].map((_, i) => <Skeleton key={i} h={56} />)}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {packs.map(pack => (
+            <div key={pack.id} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+              padding: '14px 16px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-elev)',
+            }}>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--fg)' }}>
+                  +{pack.credits.toLocaleString('pt-BR')} geocodings
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--fg-muted)', marginTop: 2 }}>
+                  Validade de {pack.validityDays} dias
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--fg)' }}>{fmtBRL(pack.priceCents)}</div>
+                <Button variant="primary" size="sm" onClick={() => handleBuy(pack.id)} disabled={!!buying}>
+                  {buying === pack.id ? 'Redirecionando…' : 'Comprar'}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Modal>
+  )
+}
+
 export default function GeocodingLogsPage() {
   const [search, setSearch] = useState('')
 
@@ -266,6 +429,8 @@ export default function GeocodingLogsPage() {
           </div>
         </div>
       </div>
+
+      <UsagePanel />
 
       {/* Stats */}
       {logs.length > 0 && (

@@ -21,6 +21,9 @@ import type {
   TicketMessage,
   User,
   GeocodingLog,
+  GeocodingUsage,
+  CreditPack,
+  TenantGeocoding,
 } from '../types'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
@@ -414,6 +417,14 @@ export const api = {
       const { data } = await http.post<{ url: string }>('/billing/portal')
       return data
     },
+    async creditPacks(): Promise<CreditPack[]> {
+      const { data } = await http.get<CreditPack[]>('/billing/credit-packs')
+      return data
+    },
+    async checkoutCredits(packId: CreditPack['id']): Promise<{ url: string }> {
+      const { data } = await http.post<{ url: string }>('/billing/checkout-credits', { packId })
+      return data
+    },
   },
 
   settings: {
@@ -524,6 +535,13 @@ export const api = {
       const { data } = await http.get('/admin/metrics')
       return data
     },
+    async tenantGeocoding(tenantId: string): Promise<TenantGeocoding> {
+      const { data } = await http.get<TenantGeocoding>(`/admin/tenants/${tenantId}/geocoding`)
+      return data
+    },
+    async setGeocodingLimit(tenantId: string, payload: { limit: number | null; expiresAt: string | null }): Promise<void> {
+      await http.patch(`/admin/tenants/${tenantId}/geocoding-limit`, payload)
+    },
   },
 
   tickets: {
@@ -585,6 +603,10 @@ export const api = {
     },
     async applyAddress(partnerId: string, address: string): Promise<void> {
       await http.post(`/geocoding-logs/fix-address/${partnerId}`, { address, confirm: true })
+    },
+    async usage(): Promise<GeocodingUsage> {
+      const { data } = await http.get<GeocodingUsage>('/geocoding-usage')
+      return data
     },
   },
 }
