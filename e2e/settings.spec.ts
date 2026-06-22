@@ -67,7 +67,7 @@ test.describe('SettingsPage', () => {
     })
 
     test('workspace content: Mapa público section is visible', async ({ page }) => {
-      await expect(page.getByText('Mapa público')).toBeVisible()
+      await expect(page.locator('.card-title', { hasText: /^Mapa público$/ })).toBeVisible()
     })
 
     test('logo upload field hint says "JPG, PNG ou WebP — máx. 2 MB"', async ({ page }) => {
@@ -120,7 +120,7 @@ test.describe('SettingsPage', () => {
       await page.goto('/settings')
       await page.getByRole('button', { name: 'Workspace', exact: true }).click()
       await expect(page).toHaveURL(/tab=workspace/)
-      await expect(page.getByText('Mapa público')).toBeVisible()
+      await expect(page.locator('.card-title', { hasText: /^Mapa público$/ })).toBeVisible()
     })
   })
 })

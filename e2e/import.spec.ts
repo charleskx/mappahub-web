@@ -4,7 +4,7 @@ import { loginAs, OWNER, API_URL } from './helpers'
 test.describe('ImportPage', () => {
   test.beforeEach(async ({ page }) => {
     await loginAs(page, OWNER)
-    await page.route(`${API_URL}/import/jobs`, r => r.fulfill({ json: [] }))
+    await page.route(`${API_URL}/import/`, r => r.fulfill({ json: [] }))
     await page.goto('/import')
   })
 
@@ -45,7 +45,7 @@ test.describe('ImportPage', () => {
   test('shows import history table when jobs exist', async ({ page }) => {
     // Override the empty-jobs route registered in beforeEach with real data,
     // then reload to trigger a fresh fetch.
-    await page.route(`${API_URL}/import/jobs`, r =>
+    await page.route(`${API_URL}/import/`, r =>
       r.fulfill({
         json: [
           {

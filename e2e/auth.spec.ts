@@ -37,7 +37,7 @@ test.describe('LoginPage', () => {
     await page.getByPlaceholder('voce@empresa.com').fill('bad@test.com')
     await page.locator('input[type="password"]').fill('wrongpassword')
     await page.getByRole('button', { name: 'Entrar' }).click()
-    await expect(page.getByText('Credenciais inválidas')).toBeVisible()
+    await expect(page.locator('.error-text').getByText('Credenciais inválidas')).toBeVisible()
   })
 
   test('redirects to /dashboard on successful login', async ({ page }) => {

@@ -63,11 +63,13 @@ test.describe('ExportPage', () => {
     await loginAs(page, OWNER)
     await page.route('**/export/columns*', r =>
       r.fulfill({
-        json: [
-          { key: 'name', label: 'Nome' },
-          { key: 'address', label: 'Endereço' },
-          { key: 'city', label: 'Cidade' },
-        ],
+        json: {
+          columns: [
+            { key: 'name', label: 'Nome' },
+            { key: 'address', label: 'Endereço' },
+            { key: 'city', label: 'Cidade' },
+          ],
+        },
       }),
     )
     await page.goto('/export')

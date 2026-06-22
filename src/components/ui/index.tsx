@@ -297,6 +297,8 @@ export function Modal({ open, onClose, title, desc, size, children, footer }: Mo
     >
       <div
         className="modal"
+        role="dialog"
+        aria-modal="true"
         data-size={size}
         onMouseDown={(e) => e.stopPropagation()}
       >
