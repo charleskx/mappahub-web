@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { loginAs, OWNER, ADMIN, EMPLOYEE, SUB_ACTIVE, SUB_TRIAL } from './helpers'
+import { API_URL, loginAs, OWNER, ADMIN, EMPLOYEE, SUB_ACTIVE, SUB_TRIAL } from './helpers'
 
 test.describe('BillingPage', () => {
   test('owner on active subscription sees "Gerenciar assinatura" button', async ({ page }) => {
@@ -56,5 +56,27 @@ test.describe('BillingPage', () => {
     await loginAs(page, OWNER, SUB_TRIAL)
     await page.goto('/billing')
     await expect(page.getByText(/trial/i).first()).toBeVisible()
+  })
+
+  test('payment history table lists recorded payments', async ({ page }) => {
+    await loginAs(page, OWNER, SUB_ACTIVE)
+    await page.route(`${API_URL}/billing/payments`, r => r.fulfill({ json: [
+      { id: 'pay1', type: 'credit_pack', description: 'Pacote de 5.000 geocodings', amountCents: 11900, currency: 'brl', status: 'paid', createdAt: '2026-06-01T00:00:00.000Z' },
+      { id: 'pay2', type: 'subscription', description: 'Assinatura mensal', amountCents: 19790, currency: 'brl', status: 'failed', createdAt: '2026-05-01T00:00:00.000Z' },
+    ] }))
+    await page.goto('/billing')
+
+    await expect(page.getByText('Histórico de pagamentos')).toBeVisible()
+    await expect(page.getByText('Pacote de 5.000 geocodings')).toBeVisible()
+    await expect(page.getByText('R$ 119,00')).toBeVisible()
+    await expect(page.getByText('Pago')).toBeVisible()
+    await expect(page.getByText('Falhou')).toBeVisible()
+  })
+
+  test('payment history shows empty state when there are none', async ({ page }) => {
+    await loginAs(page, OWNER, SUB_ACTIVE)
+    await page.route(`${API_URL}/billing/payments`, r => r.fulfill({ json: [] }))
+    await page.goto('/billing')
+    await expect(page.getByText('Nenhum pagamento registrado ainda.')).toBeVisible()
   })
 })

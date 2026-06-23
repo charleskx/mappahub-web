@@ -3,6 +3,61 @@ import { api } from '../../lib/api'
 import { useAuth } from '../../context/auth'
 import { Badge, Button, Card, CardHeader, Progress, Skeleton, useToast } from '../../components/ui'
 import { I } from '../../components/icons'
+import type { Payment } from '../../types'
+
+const PAYMENT_STATUS: Record<string, { label: string; tone: 'success' | 'danger' | 'warning' }> = {
+  paid: { label: 'Pago', tone: 'success' },
+  failed: { label: 'Falhou', tone: 'danger' },
+  refunded: { label: 'Reembolsado', tone: 'warning' },
+}
+
+function fmtMoney(cents: number, currency: string) {
+  return (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: (currency || 'brl').toUpperCase() })
+}
+
+function PaymentsHistory() {
+  const { data: payments, isLoading } = useQuery<Payment[]>({
+    queryKey: ['billing', 'payments'],
+    queryFn: () => api.billing.payments(),
+  })
+
+  return (
+    <Card>
+      <CardHeader title="Histórico de pagamentos" />
+      <div className="card-body">
+        {isLoading ? (
+          <Skeleton h={80} />
+        ) : !payments?.length ? (
+          <div className="muted text-sm">Nenhum pagamento registrado ainda.</div>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map((p) => {
+                const s = PAYMENT_STATUS[p.status] ?? { label: p.status, tone: 'warning' as const }
+                return (
+                  <tr key={p.id}>
+                    <td className="muted">{new Date(p.createdAt).toLocaleDateString('pt-BR')}</td>
+                    <td>{p.description ?? (p.type === 'credit_pack' ? 'Créditos extras' : 'Assinatura')}</td>
+                    <td style={{ fontWeight: 600 }}>{fmtMoney(p.amountCents, p.currency)}</td>
+                    <td><Badge tone={s.tone}>{s.label}</Badge></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </Card>
+  )
+}
 
 const PLAN_LABELS: Record<string, string> = {
   monthly: 'Mensal',
@@ -284,6 +339,8 @@ export default function BillingPage() {
                 )
               })}
             </div>
+
+            <PaymentsHistory />
           </>
         )}
       </div>

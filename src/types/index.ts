@@ -39,6 +39,16 @@ export interface CreditPack {
   priceCents: number
 }
 
+export interface Payment {
+  id: string
+  type: 'subscription' | 'credit_pack'
+  description: string | null
+  amountCents: number
+  currency: string
+  status: 'paid' | 'failed' | 'refunded'
+  createdAt: string
+}
+
 export interface TenantGeocoding {
   used: number
   defaultLimit: number

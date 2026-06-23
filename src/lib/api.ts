@@ -23,6 +23,7 @@ import type {
   GeocodingLog,
   GeocodingUsage,
   CreditPack,
+  Payment,
   TenantGeocoding,
 } from '../types'
 
@@ -415,6 +416,10 @@ export const api = {
     },
     async portal(): Promise<{ url: string }> {
       const { data } = await http.post<{ url: string }>('/billing/portal')
+      return data
+    },
+    async payments(): Promise<Payment[]> {
+      const { data } = await http.get<Payment[]>('/billing/payments')
       return data
     },
     async creditPacks(): Promise<CreditPack[]> {
